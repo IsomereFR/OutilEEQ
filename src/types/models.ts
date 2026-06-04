@@ -36,6 +36,18 @@ export interface Analyte {
   unite: string;
 }
 
+/**
+ * Pièce jointe PDF embarquée dans le store (encodée en data URL base64).
+ * Embarquer le fichier — plutôt qu'un chemin — garantit la portabilité et
+ * l'absence de lien fragile : le PDF voyage avec l'export JSON et reste
+ * accessible hors-ligne.
+ */
+export interface PieceJointePDF {
+  nom: string;
+  taille: number; // octets
+  data: string; // data URL "data:application/pdf;base64,…"
+}
+
 /** Verdict de conformité d'une fiche. */
 export type Verdict = 'conforme' | 'non-conforme' | null;
 
@@ -85,6 +97,8 @@ export interface Fiche {
   connexionVerifiee: string;
   parConnexion: string;
   resultatsAutomate: string;
+  /** PDF des résultats automate déposé dans la fiche (optionnel). */
+  resultatsAutomatePdf?: PieceJointePDF | null;
 
   // 5. réception
   dateReceptionRapport: string;
