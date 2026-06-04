@@ -20,3 +20,6 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+# Tauri (artefacts de compilation Rust)
+src-tauri/target/
