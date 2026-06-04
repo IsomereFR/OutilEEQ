@@ -17,6 +17,7 @@ import { Topbar } from '../components/Topbar';
 import { Stepper } from '../components/Stepper';
 import { Field, Section } from '../components/Field';
 import { ZBar } from '../components/ZBar';
+import { PdfDeposit } from '../components/PdfDeposit';
 
 /** Formate un nombre signé : signe + explicite si positif, selon le nb de décimales. */
 function fmtSigne(n: number, decimales: number): string {
@@ -252,8 +253,17 @@ export function FicheView({ id }: { id: string | null }) {
             <Field label="Par">
               <input type="text" placeholder="Initiales" {...bind('parConnexion')} />
             </Field>
-            <Field label="Résultats automate (référence / chemin)" span={2}>
-              <input type="text" placeholder="Réf. du fichier joint" {...bind('resultatsAutomate')} />
+            <Field label="Résultats automate (PDF)" span={2}>
+              <PdfDeposit
+                value={f.resultatsAutomatePdf}
+                onChange={(pj) => updateFiche(f.id, { resultatsAutomatePdf: pj })}
+              />
+              <input
+                type="text"
+                placeholder="Référence du fichier (optionnel)"
+                style={{ marginTop: 8 }}
+                {...bind('resultatsAutomate')}
+              />
             </Field>
           </div>
         </Section>

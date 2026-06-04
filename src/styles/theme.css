@@ -945,6 +945,56 @@ a {
   margin-top: 8px;
 }
 
+/* ---------- Dépôt PDF ---------- */
+.pdf-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 9px;
+  padding: 14px 12px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.pdf-drop:hover,
+.pdf-drop:focus-visible,
+.pdf-drop.over {
+  border-color: var(--terra);
+  background: var(--terra-soft);
+  color: var(--terra);
+  outline: none;
+}
+.pdf-drop .pdf-ic {
+  font-size: 16px;
+}
+.pdf-pj {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: #fff;
+}
+.pdf-pj .grow {
+  flex: 1;
+  min-width: 0;
+}
+.pdf-pj .pdf-ic {
+  font-size: 18px;
+}
+.pdf-pj .pdf-nom {
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------- Scrollbars ---------- */
 ::-webkit-scrollbar {
   width: 10px;
