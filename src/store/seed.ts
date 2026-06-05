@@ -6,6 +6,16 @@ import { uid } from '../utils/id';
 import type { AppData } from '../types/models';
 import { emptyFiche } from './factories';
 
+/**
+ * Version du jeu de démonstration. À INCRÉMENTER à chaque modification de la
+ * démo (automates, enquêtes, fiches…) que l'on souhaite voir s'appliquer
+ * automatiquement aux états déjà persistés en local. Au chargement, un état
+ * dont la `seedVersion` est inférieure est régénéré (cf. initStore).
+ * Attention : la régénération REMPLACE l'état local (acceptable tant que les
+ * données sont de la démonstration, pas des données réelles à conserver).
+ */
+export const SEED_VERSION = 2;
+
 export function seed(): AppData {
   const a1 = uid();
   const a2 = uid();
@@ -22,6 +32,7 @@ export function seed(): AppData {
 
   return {
     lab: 'Laboratoire de biologie médicale',
+    seedVersion: SEED_VERSION,
     audit: [],
     // Démo : le secteur Hémostase (code HA) est rattaché à l'automate Stago.
     codeConfigs: [{ organismeId: 'probioqual', code: 'HA', automateId: a3, actif: true }],

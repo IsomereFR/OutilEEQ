@@ -16,7 +16,7 @@ import type {
   CodeConfig,
 } from '../types/models';
 import { loadData, saveData } from './db';
-import { seed } from './seed';
+import { seed, SEED_VERSION } from './seed';
 import { emptyAutomate, emptyEnquete, emptyFiche } from './factories';
 import { analytesDeCampagne } from '../logic/campagneStatus';
 
@@ -269,10 +269,13 @@ export const useStore = create<StoreState>((set, get) => {
 export async function initStore(): Promise<void> {
   try {
     const data = await loadData();
-    if (data) {
+    if (data && (data.seedVersion ?? 0) >= SEED_VERSION) {
       // Migration douce : compléter les champs absents des anciens états.
       useStore.setState({ ...data, codeConfigs: data.codeConfigs ?? [], ready: true, error: null });
     } else {
+      // Premier lancement OU jeu de démonstration obsolète (seedVersion <
+      // SEED_VERSION) : on (re)génère la démo. Remplacement assumé — les
+      // données persistées sont de la démonstration (cf. SEED_VERSION).
       const s = seed();
       await saveData(s);
       useStore.setState({ ...s, ready: true, error: null });

@@ -188,6 +188,12 @@ export interface AppData {
   /** Rattachements code → automate des calendriers organismes. */
   codeConfigs: CodeConfig[];
   audit: AuditEntry[];
+  /**
+   * Version du jeu de démonstration ayant produit cet état. Permet de
+   * régénérer automatiquement la démo lorsqu'elle évolue (cf. SEED_VERSION).
+   * Absente sur les anciens états (traités comme version 0).
+   */
+  seedVersion?: number;
 }
 
 /** Statut affiché sous forme de chip coloré. */
