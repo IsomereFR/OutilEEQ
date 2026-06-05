@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 430" role="img" aria-label="Bioxa Laboratoire">
+  <!--
+    Recréation SVG du logo Bioxa Laboratoire (mark « éventail » + wordmark).
+    Couleurs de marque : bleu marine #16386B, vert #6F9D2F, gris #9AA0A6.
+    À remplacer par le fichier officiel si fourni (mêmes dimensions ~320x430).
+  -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Stries vertes (horizontales, en éventail) -->
+    <g stroke="#6F9D2F" stroke-width="9">
+      <path d="M28,74 Q165,40 300,96"/>
+      <path d="M24,104 Q165,78 300,124"/>
+      <path d="M22,134 Q165,114 296,154"/>
+      <path d="M26,164 Q165,152 290,184"/>
+      <path d="M36,194 Q165,192 284,208"/>
+    </g>
+    <!-- Stries bleues (verticales/diagonales, en éventail) -->
+    <g stroke="#16386B" stroke-width="9">
+      <path d="M96,22 Q70,160 150,300"/>
+      <path d="M122,18 Q104,166 186,300"/>
+      <path d="M152,20 Q150,172 216,294"/>
+      <path d="M182,26 Q202,170 240,288"/>
+      <path d="M212,36 Q252,164 264,272"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="14" y="372" font-family="'Trebuchet MS','Segoe UI',sans-serif" font-size="96"
+        font-weight="600" letter-spacing="-2">
+    <tspan fill="#16386B">Bio</tspan><tspan fill="#16386B">x</tspan><tspan fill="#6F9D2F">a</tspan>
+  </text>
+  <text x="30" y="412" font-family="'Segoe UI',sans-serif" font-size="25"
+        letter-spacing="8" fill="#9AA0A6">LABORATOIRE</text>
+</svg>

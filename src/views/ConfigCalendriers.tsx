@@ -42,9 +42,9 @@ export function ConfigCalendriers() {
       />
       <div className="page">
         <div className="info-note" style={{ marginBottom: 16 }}>
-          Rattachez chaque <b>code programme</b> (format <span className="ref">[AA·CODE·NN]</span>) à
-          l'automate concerné, puis activez son suivi. Les campagnes des codes actifs apparaissent
-          dans le planning et basculent « à traiter » 15&nbsp;jours avant leur clôture.
+          Rattachez chaque <b>programme</b> de l'organisme à l'automate concerné, puis activez son
+          suivi. Les campagnes des programmes actifs apparaissent dans le planning et basculent
+          « à traiter » 15&nbsp;jours avant leur clôture.
         </div>
 
         {/* Sélecteur d'organisme (extensible) */}
@@ -67,7 +67,7 @@ export function ConfigCalendriers() {
               </div>
             </div>
             <div className="small" style={{ marginLeft: 'auto', maxWidth: 280 }}>
-              À venir : <b>Biologie Prospective</b>, <b>EQAS</b> (chargés de la même façon).
+              À venir : <b>EQAS</b> (chargé de la même façon).
             </div>
           </div>
         </div>
@@ -79,7 +79,6 @@ export function ConfigCalendriers() {
           <table className="table">
             <thead>
               <tr>
-                <th>Code</th>
                 <th>Programme</th>
                 <th>Analytes</th>
                 <th>Occ.</th>
@@ -91,14 +90,16 @@ export function ConfigCalendriers() {
               {cal &&
                 codesDuCalendrier(cal).map((ci) => {
                   const cfg = configOf(ci.code);
+                  // Code court distinct du libellé (ProBioQual) → affiché en réf.
+                  const codeCourt = ci.code !== ci.programme ? ci.code : '';
                   return (
                     <tr key={ci.code}>
-                      <td>
-                        <span className="ref">{ci.code}</span>
+                      <td style={{ maxWidth: 340 }}>
+                        <div style={{ fontWeight: 500 }}>{ci.programme}</div>
+                        {codeCourt && <span className="ref small">{codeCourt}</span>}
                       </td>
-                      <td>{ci.programme}</td>
                       <td className="small" style={{ maxWidth: 320 }}>
-                        {ci.analytes.replace(/;\s*Commentaire.*$/i, '')}
+                        {ci.analytes ? ci.analytes.replace(/;\s*Commentaire.*$/i, '') : '—'}
                       </td>
                       <td className="num">{ci.occurrences}</td>
                       <td>
