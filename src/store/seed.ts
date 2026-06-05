@@ -1,6 +1,6 @@
 // ============================================================================
 //  Jeu de données de démonstration — équivalent à celui du prototype.
-//  3 automates, 6 enquêtes (tous statuts), 4 fiches dont une non conforme.
+//  6 automates, 6 enquêtes (tous statuts), 4 fiches dont une non conforme.
 // ============================================================================
 import { uid } from '../utils/id';
 import type { AppData } from '../types/models';
@@ -10,6 +10,9 @@ export function seed(): AppData {
   const a1 = uid();
   const a2 = uid();
   const a3 = uid();
+  const a4 = uid();
+  const a5 = uid();
+  const a6 = uid();
   const e1 = uid();
   const e2 = uid();
   const e3 = uid();
@@ -24,8 +27,11 @@ export function seed(): AppData {
     codeConfigs: [{ organismeId: 'probioqual', code: 'HA', automateId: a3, actif: true }],
     automates: [
       { id: a1, nom: 'Atellica Solution', secteur: 'Biochimie / Immuno', modele: 'Siemens', inventaire: 'INV-0142' },
-      { id: a2, nom: 'Sysmex XN-1000', secteur: 'Hématologie', modele: 'Sysmex', inventaire: 'INV-0088' },
-      { id: a3, nom: 'Diagnostica Stago STA-R', secteur: 'Hémostase', modele: 'Stago', inventaire: 'INV-0203' },
+      { id: a3, nom: 'CS 5100', secteur: 'Hémostase', modele: 'Sysmex', inventaire: 'INV-0203' },
+      { id: a4, nom: 'Liaison XL', secteur: 'Sérologie / Immuno', modele: 'DiaSorin', inventaire: '' },
+      { id: a5, nom: 'Vision', secteur: 'Hématologie', modele: '', inventaire: '' },
+      { id: a2, nom: 'XN 9100', secteur: 'Hématologie', modele: 'Sysmex', inventaire: 'INV-0088' },
+      { id: a6, nom: 'TLA', secteur: 'Automatisation', modele: '', inventaire: '' },
     ],
     enquetes: [
       {
