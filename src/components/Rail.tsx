@@ -27,7 +27,15 @@ export function Rail() {
   ).length;
 
   const handleExport = () => {
-    exportJSON({ lab, automates, enquetes, fiches, audit: useStore.getState().audit });
+    const s = useStore.getState();
+    exportJSON({
+      lab,
+      automates,
+      enquetes,
+      fiches,
+      codeConfigs: s.codeConfigs,
+      audit: s.audit,
+    });
     show('Sauvegarde exportée ⤓');
   };
   const handleImport = (file: File) => {
@@ -81,6 +89,9 @@ export function Rail() {
               {enRetard}
             </span>
           )}
+        </button>
+        <button className={`nav-item ${name === 'config' ? 'active' : ''}`} onClick={() => go('config')}>
+          <span className="ic">⚙</span> Configuration EEQ
         </button>
 
         <div className="rail-label">Automates</div>

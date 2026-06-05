@@ -8,6 +8,7 @@ import { Planning } from './views/Planning';
 import { EnqueteView } from './views/EnqueteView';
 import { AutomateView } from './views/AutomateView';
 import { FicheView } from './views/FicheView';
+import { ConfigCalendriers } from './views/ConfigCalendriers';
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -47,6 +48,9 @@ export function App() {
       break;
     case 'fiche':
       content = <FicheView id={view.id} />;
+      break;
+    case 'config':
+      content = <ConfigCalendriers />;
       break;
     default:
       content = <Dashboard />;

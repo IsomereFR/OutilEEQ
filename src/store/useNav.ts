@@ -1,7 +1,7 @@
 // Navigation locale (sans routeur) — vue courante + identifiant.
 import { create } from 'zustand';
 
-export type ViewName = 'dashboard' | 'planning' | 'enquete' | 'automate' | 'fiche';
+export type ViewName = 'dashboard' | 'planning' | 'enquete' | 'automate' | 'fiche' | 'config';
 
 interface NavState {
   name: ViewName;

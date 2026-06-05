@@ -51,6 +51,56 @@ export interface PieceJointePDF {
 /** Verdict de conformité d'une fiche. */
 export type Verdict = 'conforme' | 'non-conforme' | null;
 
+// ----------------------------------------------------------------------------
+//  Calendriers EEQ des organismes (ProBioQual, Biologie Prospective, EQAS…).
+//  Données de RÉFÉRENCE embarquées (statiques, hors-ligne). Le rattachement
+//  code → automate est, lui, configurable et persisté (cf. CodeConfig).
+// ----------------------------------------------------------------------------
+
+/** Une campagne programmée du calendrier d'un organisme. */
+export interface Campagne {
+  /** Identifiant stable : `${organismeId}:${echantillon}`. */
+  id: string;
+  /** Code échantillon complet, ex. « 26HA01 ». */
+  echantillon: string;
+  /** Année sur 2 chiffres (« 26 »). */
+  annee: string;
+  /** Code programme (« HA », « HH », « BKC »…). */
+  code: string;
+  /** Numéro d'occurrence dans l'année (« 01 »). */
+  numero: string;
+  /** Libellé du programme (« Hémostase »…). */
+  programme: string;
+  /** Liste brute des analytes (séparés par « ; »). */
+  analytes: string;
+  /** Date d'ouverture / réception prévue (ISO AAAA-MM-JJ). */
+  dateDebut: string;
+  /** Date de clôture / échéance de retour (ISO AAAA-MM-JJ). */
+  dateFin: string;
+}
+
+/** Calendrier annuel d'un organisme (référence embarquée). */
+export interface CalendrierOrganisme {
+  /** Identifiant d'organisme, ex. « probioqual ». */
+  id: string;
+  /** Nom affiché, ex. « ProBioQual ». */
+  organisme: string;
+  annee: number;
+  campagnes: Campagne[];
+}
+
+/** Rattachement configurable d'un code programme à un automate. */
+export interface CodeConfig {
+  /** Identifiant de l'organisme (« probioqual »). */
+  organismeId: string;
+  /** Code programme concerné (« HA »). */
+  code: string;
+  /** Automate rattaché (null = non rattaché). */
+  automateId: string | null;
+  /** Le code est-il suivi par le laboratoire ? */
+  actif: boolean;
+}
+
 /** Type de contrôle. */
 export type TypeControle = 'EEQ' | 'CNQ';
 
@@ -59,6 +109,8 @@ export interface Fiche {
   id: string;
   /** Rattachement à une enquête du planning (null = fiche autonome). */
   enqueteId: string | null;
+  /** Rattachement à une campagne d'un calendrier organisme (optionnel). */
+  campagneId?: string | null;
   automateId: string;
 
   // 1. administratif
@@ -117,7 +169,7 @@ export interface Fiche {
 /** Entrée du journal d'audit léger (traçabilité ISO). */
 export interface AuditEntry {
   ts: string; // horodatage ISO
-  entity: 'automate' | 'enquete' | 'fiche' | 'lab' | 'data';
+  entity: 'automate' | 'enquete' | 'fiche' | 'lab' | 'data' | 'config';
   entityId: string | null;
   action: string; // ex. "création", "modification", "suppression", "import"
   detail?: string;
@@ -129,6 +181,8 @@ export interface AppData {
   automates: Automate[];
   enquetes: Enquete[];
   fiches: Fiche[];
+  /** Rattachements code → automate des calendriers organismes. */
+  codeConfigs: CodeConfig[];
   audit: AuditEntry[];
 }
 

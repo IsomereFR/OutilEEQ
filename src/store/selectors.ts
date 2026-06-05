@@ -12,3 +12,6 @@ export const fichesForAutomate = (fiches: Fiche[], automateId: string) =>
 
 export const fichesForEnquete = (fiches: Fiche[], enqueteId: string) =>
   fiches.filter((f) => f.enqueteId === enqueteId);
+
+export const fichesForCampagne = (fiches: Fiche[], campagneId: string) =>
+  fiches.filter((f) => f.campagneId === campagneId);

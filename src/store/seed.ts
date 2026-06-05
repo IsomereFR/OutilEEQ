@@ -20,6 +20,8 @@ export function seed(): AppData {
   return {
     lab: 'Laboratoire de biologie médicale',
     audit: [],
+    // Démo : le secteur Hémostase (code HA) est rattaché à l'automate Stago.
+    codeConfigs: [{ organismeId: 'probioqual', code: 'HA', automateId: a3, actif: true }],
     automates: [
       { id: a1, nom: 'Atellica Solution', secteur: 'Biochimie / Immuno', modele: 'Siemens', inventaire: 'INV-0142' },
       { id: a2, nom: 'Sysmex XN-1000', secteur: 'Hématologie', modele: 'Sysmex', inventaire: 'INV-0088' },
