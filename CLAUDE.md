@@ -81,6 +81,20 @@ npm test            # tous les tests verts
 npm run build       # build OK
 ```
 
+## Flux Git — envoi automatique sur `main` (demande du propriétaire)
+
+**Règle permanente** : toute modification terminée et vérifiée (typecheck +
+tests + build verts) doit être **automatiquement publiée sur `main`**, sans
+demander de confirmation à chaque fois. Procédure :
+
+1. Développer sur la branche dédiée, committer avec un message clair.
+2. `git push -u origin <branche>`.
+3. Ouvrir la PR si absente, puis **merger la PR sur `main`** (méthode `merge`).
+   Le déploiement de production Vercel se déclenche depuis `main`.
+
+Exceptions où l'on s'arrête pour demander : action destructrice/irréversible,
+choix d'architecture significatif, ou ambiguïté réelle sur l'intention.
+
 ## Périmètre fonctionnel (rappel)
 
 Planning des enquêtes ↔ fiches rattachées · Référentiel automates · Fiche EEQ
