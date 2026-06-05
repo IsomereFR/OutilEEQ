@@ -5,8 +5,10 @@
 // ============================================================================
 import { useStore } from '../store/useStore';
 import { useNav } from '../store/useNav';
-import { findAutomate, fichesForAutomate } from '../store/selectors';
+import { findAutomate, fichesForAutomate, fichesForCampagne } from '../store/selectors';
 import { stepIndex, statutFiche } from '../logic/ficheStatus';
+import { campagneActionnable } from '../logic/campagneStatus';
+import { CALENDRIERS } from '../data/calendriers';
 import { fmtDate } from '../utils/format';
 import { Topbar } from '../components/Topbar';
 import { Chip } from '../components/Chip';
@@ -16,6 +18,23 @@ export function Dashboard() {
   const go = useNav((s) => s.go);
   const fiches = useStore((s) => s.fiches);
   const automates = useStore((s) => s.automates);
+  const codeConfigs = useStore((s) => s.codeConfigs);
+  const createFicheFromCampagne = useStore((s) => s.createFicheFromCampagne);
+
+  // --- Campagnes EEQ à traiter (codes suivis, ≤ 15 j de la clôture, sans fiche) ---
+  const aCreer = CALENDRIERS.flatMap((cal) =>
+    cal.campagnes
+      .filter((camp) => {
+        const cfg = codeConfigs.find((c) => c.organismeId === cal.id && c.code === camp.code);
+        if (!cfg || !cfg.actif || !cfg.automateId) return false;
+        if (fichesForCampagne(fiches, camp.id).length) return false;
+        return campagneActionnable(camp, []);
+      })
+      .map((camp) => {
+        const cfg = codeConfigs.find((c) => c.organismeId === cal.id && c.code === camp.code)!;
+        return { camp, organisme: cal.organisme, automateId: cfg.automateId as string };
+      }),
+  ).sort((a, b) => a.camp.dateFin.localeCompare(b.camp.dateFin));
 
   // --- KPIs ---
   const enCours = fiches.filter((f) => stepIndex(f) < 6).length;
@@ -68,6 +87,41 @@ export function Dashboard() {
             hint="FNC à suivre dans le SMQ"
           />
         </div>
+
+        {aCreer.length > 0 && (
+          <div className="card" style={{ marginBottom: 18 }}>
+            <h3>
+              🗓 Campagnes EEQ à traiter <span className="tag">≤ 15 j avant clôture · fiche à créer</span>
+            </h3>
+            <div className="card-body">
+              {aCreer.slice(0, 8).map(({ camp, organisme, automateId }) => {
+                const a = findAutomate(automates, automateId);
+                return (
+                  <div key={camp.id} className="list-row">
+                    <div className="grow">
+                      <div className="ttl">
+                        {camp.programme}{' '}
+                        <span className="ref" style={{ color: 'var(--muted)' }}>
+                          {camp.echantillon}
+                        </span>
+                      </div>
+                      <div className="meta">
+                        {organisme} · {a ? a.nom : '—'}
+                      </div>
+                    </div>
+                    <div className="meta">clôture {fmtDate(camp.dateFin)}</div>
+                    <button
+                      className="btn primary"
+                      onClick={() => go('fiche', createFicheFromCampagne(camp, organisme, automateId))}
+                    >
+                      + Créer la fiche
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid2">
           {/* Campagnes à traiter */}

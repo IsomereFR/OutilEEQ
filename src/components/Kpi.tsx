@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-type Tone = 'ok' | 'warn' | 'bad' | 'info';
+type Tone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral';
 
 /** Carte KPI avec liseré coloré. */
 export function Kpi({

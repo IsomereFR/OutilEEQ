@@ -28,7 +28,9 @@ src/
     calculations.ts        z-score, écart %, évaluation analyte, synthèse.
     ficheStatus.ts         STEPS, stepIndex, statutFiche.
     enqueteStatus.ts       daysTo, statutEnquete.
+    campagneStatus.ts      statut campagne (stand-by → à traiter à 15 j).
     __tests__/             Tests unitaires Vitest.
+  data/calendriers/      Calendriers EEQ embarqués (ProBioQual…) + registre.
   store/
     db.ts                  Accès IndexedDB (load/save de l'AppData complet).
     useStore.ts            Store Zustand + auto-persistance + journal d'audit.
@@ -40,7 +42,7 @@ src/
   components/            Composants UI réutilisables (Rail, Topbar, Chip,
                          Stepper, Kpi, ZBar, Field/Section, Toast).
   views/                Une vue par écran (Dashboard, Planning, EnqueteView,
-                         AutomateView, FicheView).
+                         AutomateView, FicheView, ConfigCalendriers).
   utils/                format (fr-FR), id, portability (export/import JSON).
   styles/theme.css      Design system (variables + classes).
 ```

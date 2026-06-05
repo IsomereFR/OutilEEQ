@@ -4,10 +4,21 @@
 //  - Un journal d'audit léger horodate les événements structurants (ISO).
 // ============================================================================
 import { create } from 'zustand';
-import type { AppData, Automate, Enquete, Fiche, Analyte, Verdict, AuditEntry } from '../types/models';
+import type {
+  AppData,
+  Automate,
+  Enquete,
+  Fiche,
+  Analyte,
+  Verdict,
+  AuditEntry,
+  Campagne,
+  CodeConfig,
+} from '../types/models';
 import { loadData, saveData } from './db';
 import { seed } from './seed';
 import { emptyAutomate, emptyEnquete, emptyFiche } from './factories';
+import { analytesDeCampagne } from '../logic/campagneStatus';
 
 interface StoreState extends AppData {
   /** true une fois l'état chargé depuis IndexedDB (ou seedé). */
@@ -28,6 +39,10 @@ interface StoreState extends AppData {
 
   addFiche(automateId: string): string;
   createFicheFromEnquete(enqueteId: string, automateId: string): string;
+  /** Crée une fiche pré-remplie depuis une campagne de calendrier organisme. */
+  createFicheFromCampagne(campagne: Campagne, organisme: string, automateId: string): string;
+  /** Rattache (upsert) un code de calendrier à un automate. */
+  setCodeConfig(organismeId: string, code: string, patch: Partial<CodeConfig>): void;
   updateFiche(id: string, patch: Partial<Fiche>): void;
   deleteFiche(id: string): void;
   setVerdict(id: string, v: Verdict): void;
@@ -39,7 +54,7 @@ interface StoreState extends AppData {
   replaceAll(data: AppData): void;
 }
 
-const EMPTY: AppData = { lab: '', automates: [], enquetes: [], fiches: [], audit: [] };
+const EMPTY: AppData = { lab: '', automates: [], enquetes: [], fiches: [], codeConfigs: [], audit: [] };
 
 // --- Audit léger : coalesce les "modification" répétées sur la même entité ---
 const COALESCE_MS = 60_000;
@@ -74,6 +89,7 @@ export const useStore = create<StoreState>((set, get) => {
         automates: state.automates,
         enquetes: state.enquetes,
         fiches: state.fiches,
+        codeConfigs: state.codeConfigs,
         audit: state.audit,
       };
       const patch = fn(data) || {};
@@ -166,6 +182,39 @@ export const useStore = create<StoreState>((set, get) => {
       });
       return f.id;
     },
+    createFicheFromCampagne: (campagne, organisme, automateId) => {
+      const secteur = get().automates.find((a) => a.id === automateId)?.secteur || '';
+      // Pré-remplissage : analytes du programme listés (valeurs à compléter).
+      const analytes = analytesDeCampagne(campagne).map((param) => ({
+        param, valeur: '', cible: '', sd: '', unite: '',
+      }));
+      const f = emptyFiche({
+        campagneId: campagne.id,
+        automateId,
+        organisme,
+        reference: `${campagne.echantillon} ${campagne.programme}`.trim(),
+        secteur,
+        analytes,
+      });
+      mutate((d) => ({ fiches: [...d.fiches, f] }), {
+        entity: 'fiche', entityId: f.id, action: 'création', detail: `campagne ${campagne.echantillon}`,
+      });
+      return f.id;
+    },
+    setCodeConfig: (organismeId, code, patch) =>
+      mutate(
+        (d) => {
+          const i = d.codeConfigs.findIndex((c) => c.organismeId === organismeId && c.code === code);
+          if (i === -1) {
+            const created: CodeConfig = { organismeId, code, automateId: null, actif: false, ...patch };
+            return { codeConfigs: [...d.codeConfigs, created] };
+          }
+          return {
+            codeConfigs: d.codeConfigs.map((c, j) => (j === i ? { ...c, ...patch } : c)),
+          };
+        },
+        { entity: 'config', entityId: `${organismeId}:${code}`, action: 'modification' },
+      ),
     updateFiche: (id, patch) =>
       mutate((d) => ({ fiches: d.fiches.map((f) => (f.id === id ? { ...f, ...patch } : f)) }), {
         entity: 'fiche', entityId: id, action: 'modification',
@@ -210,6 +259,7 @@ export const useStore = create<StoreState>((set, get) => {
         automates: data.automates ?? [],
         enquetes: data.enquetes ?? [],
         fiches: data.fiches ?? [],
+        codeConfigs: data.codeConfigs ?? [],
         audit: appendAudit(data.audit ?? [], { entity: 'data', entityId: null, action: 'import' }),
       }),
   };
@@ -220,7 +270,8 @@ export async function initStore(): Promise<void> {
   try {
     const data = await loadData();
     if (data) {
-      useStore.setState({ ...data, ready: true, error: null });
+      // Migration douce : compléter les champs absents des anciens états.
+      useStore.setState({ ...data, codeConfigs: data.codeConfigs ?? [], ready: true, error: null });
     } else {
       const s = seed();
       await saveData(s);
@@ -250,6 +301,7 @@ useStore.subscribe((s) => {
       automates: s.automates,
       enquetes: s.enquetes,
       fiches: s.fiches,
+      codeConfigs: s.codeConfigs,
       audit: s.audit,
     }).catch((e) => {
       useStore.setState({ error: 'Échec de sauvegarde locale : ' + String(e) });

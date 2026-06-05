@@ -15,6 +15,12 @@ Aucun backend, aucune base cloud, aucune dépendance réseau au runtime.
   par date avec séparateurs mensuels, KPIs (planifiées / à venir ≤ 30 j / en
   retard / reçues), statut automatique par enquête. Création d'une fiche
   pré-remplie et rattachée par automate concerné.
+- **Calendriers EEQ des organismes** : calendrier ProBioQual 2026 embarqué
+  (code échantillon `[AA·CODE·NN]`), extensible (Biologie Prospective, EQAS à
+  venir). Un **panneau de configuration** rattache chaque code programme à un
+  automate ; les campagnes des codes suivis restent en **stand-by** puis
+  basculent **« à traiter » 15 jours avant la date de clôture**, et génèrent une
+  fiche pré-remplie (organisme, référence, automate, analytes du programme).
 - **Référentiel automates** : CRUD + vue listant les campagnes de chaque
   automate.
 - **Fiche EEQ** : les 6 parties (administratif → reconstitution → analytique →
