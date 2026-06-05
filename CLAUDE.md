@@ -87,10 +87,17 @@ npm run build       # build OK
 tests + build verts) doit être **automatiquement publiée sur `main`**, sans
 demander de confirmation à chaque fois. Procédure :
 
-1. Développer sur la branche dédiée, committer avec un message clair.
+1. Committer avec l'identité **`Claude <noreply@anthropic.com>`** (sinon le
+   commit s'affiche « Unverified » sur GitHub) :
+   `git -c user.name=Claude -c user.email=noreply@anthropic.com commit …`.
 2. `git push -u origin <branche>`.
 3. Ouvrir la PR si absente, puis **merger la PR sur `main`** (méthode `merge`).
    Le déploiement de production Vercel se déclenche depuis `main`.
+4. **Resynchroniser la branche avec `main` puis la pousser** :
+   `git fetch origin main && git merge --ff-only origin/main && git push origin <branche>`.
+   Indispensable : sans ce push, le commit de merge créé par GitHub
+   (committer `noreply@github.com`) reste en avance locale et le hook d'arrêt le
+   signale comme « Unverified ». Après ce push, `origin/<branche>` == `main`.
 
 Exceptions où l'on s'arrête pour demander : action destructrice/irréversible,
 choix d'architecture significatif, ou ambiguïté réelle sur l'intention.
