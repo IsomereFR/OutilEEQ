@@ -5,8 +5,9 @@
 // ============================================================================
 import type { CalendrierOrganisme } from '../../types/models';
 import { PROBIOQUAL_2026 } from './probioqual2026';
+import { BIOLOGIE_PROSPECTIVE_2026 } from './biologieprospective2026';
 
-export const CALENDRIERS: CalendrierOrganisme[] = [PROBIOQUAL_2026];
+export const CALENDRIERS: CalendrierOrganisme[] = [PROBIOQUAL_2026, BIOLOGIE_PROSPECTIVE_2026];
 
 /** Calendrier par identifiant d'organisme. */
 export function calendrierById(id: string): CalendrierOrganisme | undefined {

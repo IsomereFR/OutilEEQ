@@ -177,12 +177,25 @@ export function Planning() {
                         <tr key={l.campagne.id} className="enq-row">
                           <td>
                             <div className="prog">
-                              {l.campagne.programme}{' '}
-                              <span className="ref" style={{ color: 'var(--muted)' }}>
-                                {l.campagne.echantillon}
-                              </span>
+                              {l.campagne.programme}
+                              {l.campagne.echantillon && (
+                                <>
+                                  {' '}
+                                  <span className="ref" style={{ color: 'var(--muted)' }}>
+                                    {l.campagne.echantillon}
+                                  </span>
+                                </>
+                              )}
                             </div>
-                            <div className="org">{l.campagne.code} · n°{l.campagne.numero}</div>
+                            <div className="org">
+                              {[
+                                l.campagne.numero && `n°${l.campagne.numero}`,
+                                l.campagne.gestion,
+                                l.campagne.typeMcq,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </div>
                           </td>
                           <td className="small">{l.organisme}</td>
                           <td className="small">{a ? a.nom : '—'}</td>

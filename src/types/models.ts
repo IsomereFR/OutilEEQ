@@ -77,6 +77,10 @@ export interface Campagne {
   dateDebut: string;
   /** Date de clôture / échéance de retour (ISO AAAA-MM-JJ). */
   dateFin: string;
+  /** Gestionnaire (ex. « BP », « CTCB ») — métadonnée optionnelle. */
+  gestion?: string;
+  /** Type de MCQ (« Physique », « Virtuel », « Mixte ») — optionnel. */
+  typeMcq?: string;
 }
 
 /** Calendrier annuel d'un organisme (référence embarquée). */
