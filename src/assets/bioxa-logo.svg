@@ -5,29 +5,29 @@
     À remplacer par le fichier officiel si fourni (mêmes dimensions ~320x430).
   -->
   <g fill="none" stroke-linecap="round">
-    <!-- Stries vertes (horizontales, en éventail) -->
-    <g stroke="#6F9D2F" stroke-width="9">
-      <path d="M28,74 Q165,40 300,96"/>
-      <path d="M24,104 Q165,78 300,124"/>
-      <path d="M22,134 Q165,114 296,154"/>
-      <path d="M26,164 Q165,152 290,184"/>
-      <path d="M36,194 Q165,192 284,208"/>
+    <!-- Stries vertes (feuilles) : partent de la gauche, balayage vers la droite -->
+    <g stroke="#6F9D2F" stroke-width="8">
+      <path d="M26,80 Q150,44 305,92"/>
+      <path d="M22,108 Q150,80 305,120"/>
+      <path d="M20,136 Q150,116 300,150"/>
+      <path d="M24,164 Q150,152 294,180"/>
+      <path d="M34,192 Q150,192 288,206"/>
     </g>
-    <!-- Stries bleues (verticales/diagonales, en éventail) -->
-    <g stroke="#16386B" stroke-width="9">
-      <path d="M96,22 Q70,160 150,300"/>
-      <path d="M122,18 Q104,166 186,300"/>
-      <path d="M152,20 Q150,172 216,294"/>
-      <path d="M182,26 Q202,170 240,288"/>
-      <path d="M212,36 Q252,164 264,272"/>
+    <!-- Stries bleues (retombées) : partent du haut, fan vers le bas-droit -->
+    <g stroke="#16386B" stroke-width="8">
+      <path d="M92,22 Q66,160 146,302"/>
+      <path d="M118,18 Q102,166 182,302"/>
+      <path d="M148,20 Q148,172 214,296"/>
+      <path d="M178,26 Q200,170 240,290"/>
+      <path d="M208,36 Q252,162 266,272"/>
     </g>
   </g>
 
-  <!-- Wordmark -->
-  <text x="14" y="372" font-family="'Trebuchet MS','Segoe UI',sans-serif" font-size="96"
-        font-weight="600" letter-spacing="-2">
-    <tspan fill="#16386B">Bio</tspan><tspan fill="#16386B">x</tspan><tspan fill="#6F9D2F">a</tspan>
+  <!-- Wordmark : lettrage fin et arrondi (bleu, dernier « a » en vert) -->
+  <text x="16" y="372" font-family="'Century Gothic','Futura','Questrial','Trebuchet MS',sans-serif"
+        font-size="94" font-weight="400" letter-spacing="-1">
+    <tspan fill="#16386B">Biox</tspan><tspan fill="#6F9D2F">a</tspan>
   </text>
-  <text x="30" y="412" font-family="'Segoe UI',sans-serif" font-size="25"
-        letter-spacing="8" fill="#9AA0A6">LABORATOIRE</text>
+  <text x="34" y="410" font-family="'Century Gothic','Segoe UI',sans-serif" font-size="24"
+        letter-spacing="7.5" fill="#9AA0A6">LABORATOIRE</text>
 </svg>
