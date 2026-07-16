@@ -8,7 +8,6 @@ import { stepIndex } from '../logic/ficheStatus';
 import { statutEnquete } from '../logic/enqueteStatus';
 import { fichesForEnquete } from '../store/selectors';
 import { exportJSON, importJSONFile } from '../utils/portability';
-import bioxaLogo from '../assets/bioxa-logo.svg';
 
 export function Rail() {
   const { name, id, go } = useNav();
@@ -61,10 +60,7 @@ export function Rail() {
   return (
     <aside className="rail">
       <div className="brand">
-        <div className="brand-logo">
-          <img src={bioxaLogo} alt="Bioxa Laboratoire" />
-        </div>
-        <div className="mark" style={{ marginTop: 12 }}>
+        <div className="mark">
           <div>
             <h1>Suivi EEQ</h1>
             <div className="sub">Évaluations externes de la qualité</div>
