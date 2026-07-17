@@ -117,7 +117,8 @@ export function MurAutomates({ enquetes }: { enquetes: Enquete[] }) {
                   <div className="font-title font-bold text-marine text-base truncate">{a.nom}</div>
                   {suivant ? (
                     <div className="text-xs text-encre/60 mt-1 truncate">
-                      Prochaine · {fmtDate(suivant.dateEcheanceRealisation)} · {libelleJours(suivant)}
+                      <span className="font-mono font-semibold text-marine">{suivant.envoiRef}</span> ·{' '}
+                      {fmtDate(suivant.dateEcheanceRealisation)} · {libelleJours(suivant)}
                     </div>
                   ) : (
                     <div className="text-xs mt-1 flex items-center gap-1.5" style={{ color: COULEUR_ALERTE.a_jour }}>
@@ -184,7 +185,7 @@ function CarteAuto({ vue, libelleProgramme }: { vue: AutoVue; libelleProgramme: 
                     {libelleProgramme.get(e.programmeId) ?? e.programmeId}
                   </div>
                   <div className="text-sm truncate" style={{ color: subColor }}>
-                    {e.envoiRef} · échéance {fmtDate(e.dateEcheanceRealisation)}
+                    <span className="font-mono font-semibold">{e.envoiRef}</span> · échéance {fmtDate(e.dateEcheanceRealisation)}
                   </div>
                 </div>
               </li>

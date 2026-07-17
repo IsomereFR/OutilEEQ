@@ -9,6 +9,7 @@ import { useStore } from '../../store/useStore';
 import { exporterJSON, lireImportJSON } from '../../store/backup';
 import { appliquerFiltres, type Filtres as FiltresValeurs } from '../../domain/vues';
 import { Reconcile } from '../reconcile/Reconcile';
+import { AttributionProgrammes } from './AttributionProgrammes';
 import { Filtres } from '../dashboard/Filtres';
 import { ListePriorisee } from '../dashboard/ListePriorisee';
 import { Carte } from '../../ui/Carte';
@@ -79,7 +80,10 @@ export function AdminView() {
         </div>
       </Carte>
 
-      {/* Intégration + affectation (import Excel, réconciliation, inbox) */}
+      {/* Attribution des programmes aux automates (étape clé avant production) */}
+      <AttributionProgrammes />
+
+      {/* Intégration (import Excel, réconciliation, inbox) */}
       <Reconcile />
 
       {/* Gestion des campagnes affectées */}

@@ -1,11 +1,14 @@
 // ============================================================================
 //  Données d'amorce (cf. PRD §11). Parc d'automates réel BIOXA (un automate par
-//  famille analytique), organisé PAR DISCIPLINE. Aucune enquête (table rase) :
-//  elles seront importées depuis les CSV puis affectées dans l'espace admin.
+//  famille analytique) + plannings importés (ProBioQual, Biologie Prospective).
+//  Les enquêtes sont NON AFFECTÉES : l'admin attribue chaque programme à un
+//  automate, ce qui les fait apparaître au mur (cf. AttributionProgrammes).
 //  ⚠️ À COMPLÉTER : les 9 sites (ici un seul site d'amorce) et le rattachement
 //  automate ↔ site.
 // ============================================================================
 import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '../domain/types';
+import { PROBIOQUAL_PROGRAMMES, PROBIOQUAL_ENQUETES } from './probioqual';
+import { BP_PROGRAMMES, BP_ENQUETES } from './bioprospective';
 
 /**
  * Version du jeu d'amorce. À incrémenter quand on modifie les référentiels de
@@ -13,11 +16,11 @@ import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '.
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 8;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
-  { id: 'f-probioq', nom: 'ProBioQ', sigle: 'PBQ' },
+  { id: 'f-probioq', nom: 'ProBioQual', sigle: 'PBQ' },
   { id: 'f-asqualab', nom: 'Asqualab', sigle: 'ASQ' },
   { id: 'f-ctcb', nom: 'CTCB', sigle: 'CTCB' },
   { id: 'f-bioprospective', nom: 'Biologie Prospective', sigle: 'BP' },
@@ -57,48 +60,13 @@ const automates: Automate[] = [
   A('a-manuel', 'Techniques manuelles', ['Techniques Manuelles']),
 ];
 
-// --- Programmes EEQ (exemples reliant fournisseur + automates par défaut) -----
-const programmes: Programme[] = [
-  {
-    id: 'p-bioch', fournisseurId: 'f-probioq', codeProgramme: 'BIOCH', libelle: 'Biochimie générale',
-    discipline: 'Biochimie', parametres: ['Glucose', 'Créatinine', 'Na', 'K'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-ch'],
-  },
-  {
-    id: 'p-immuno', fournisseurId: 'f-probioq', codeProgramme: 'IMMUNO', libelle: 'Immuno-analyse',
-    discipline: 'Immunologie', parametres: ['TSH', 'T4L', 'Ferritine'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-im'],
-  },
-  {
-    id: 'p-hemostase', fournisseurId: 'f-probioq', codeProgramme: 'HEMOS', libelle: 'Hémostase',
-    discipline: 'Hémostase', parametres: ['TP', 'TCA', 'Fibrinogène'], frequence: 'Trimestrielle',
-    automatesParDefaut: ['a-cs'],
-  },
-  {
-    id: 'p-hemato', fournisseurId: 'f-asqualab', codeProgramme: 'HEMATO', libelle: 'Hématologie cellulaire',
-    discipline: 'Hématologie', parametres: ['NFS', 'Plaquettes'], frequence: 'Trimestrielle',
-    automatesParDefaut: ['a-xn'],
-  },
-  {
-    id: 'p-ih', fournisseurId: 'f-bioprospective', codeProgramme: 'IH', libelle: 'Immuno-hématologie',
-    discipline: 'Immunohématologie', parametres: ['Groupe ABO', 'RAI'], frequence: '3 / an',
-    automatesParDefaut: ['a-vision'],
-  },
-  {
-    id: 'p-hba1c', fournisseurId: 'f-riqas', codeProgramme: 'HBA1C', libelle: 'HbA1C',
-    discipline: 'HbA1C', parametres: ['HbA1C'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-tla'],
-  },
-  {
-    id: 'p-eph', fournisseurId: 'f-asqualab', codeProgramme: 'EPH', libelle: 'Électrophorèse des protéines',
-    discipline: 'Électrophorèse des protéines', parametres: ['Albumine', 'Globulines'], frequence: 'Semestrielle',
-    automatesParDefaut: ['a-octa'],
-  },
-];
+// --- Programmes EEQ : plannings importés (ProBioQual + Biologie Prospective) ---
+const programmes: Programme[] = [...PROBIOQUAL_PROGRAMMES, ...BP_PROGRAMMES];
 
-// --- Enquêtes : TABLE RASE. Les enquêtes et leurs échéances seront importées
-//     depuis les fichiers CSV, puis affectées aux automates dans l'espace admin.
-const enquetes: Enquete[] = [];
+// --- Enquêtes : plannings importés, NON AFFECTÉES. L'admin attribue chaque
+//     programme à un automate (cf. AttributionProgrammes), ce qui affecte les
+//     enquêtes correspondantes et les fait apparaître au mur.
+const enquetes: Enquete[] = [...PROBIOQUAL_ENQUETES, ...BP_ENQUETES];
 
 /** Jeu de données d'amorce complet. */
 export function seed(): AppData {

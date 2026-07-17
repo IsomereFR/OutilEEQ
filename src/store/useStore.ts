@@ -44,6 +44,13 @@ interface StoreState extends AppData {
   /** Ajoute une pièce jointe (capture). */
   ajouterPieceJointe(pj: PieceJointe): void;
 
+  /**
+   * Attribue un programme à un (ou plusieurs) automate(s) : met à jour les
+   * automates par défaut du programme ET affecte toutes ses enquêtes à ces
+   * automates (affectee = true si au moins un automate). Coeur du flux admin.
+   */
+  attribuerProgramme(programmeId: string, automateIds: string[]): void;
+
   /** Remplace ou fusionne tout l'état (import JSON). */
   appliquerImportJSON(data: AppData, mode: ModeImport): void;
   /** Instantané AppData pur (pour export). */
@@ -113,6 +120,16 @@ export const useStore = create<StoreState>((set, get) => ({
   ajouterJournal: (entry) => set((s) => ({ journal: [entry, ...s.journal] })),
 
   ajouterPieceJointe: (pj) => set((s) => ({ piecesJointes: [...s.piecesJointes, pj] })),
+
+  attribuerProgramme: (programmeId, automateIds) =>
+    set((s) => ({
+      programmes: s.programmes.map((p) => (p.id === programmeId ? { ...p, automatesParDefaut: automateIds } : p)),
+      enquetes: s.enquetes.map((e) =>
+        e.programmeId === programmeId
+          ? { ...e, automateIds, affectee: automateIds.length > 0, updatedAt: nowISO() }
+          : e,
+      ),
+    })),
 
   appliquerImportJSON: (data, mode) =>
     set(() => (mode === 'remplacement' ? data : fusionner(get().snapshot(), data))),
