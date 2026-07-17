@@ -23,5 +23,13 @@ export const FENETRE_AFFICHAGE_JOURS = 15;
 /** Fenêtre de la frise chronologique (jours glissants). */
 export const FENETRE_FRISE_JOURS = 90;
 
+/**
+ * Réapprovisionnement du planning : préavis (jours) avant l'épuisement des
+ * enquêtes d'un automate. Les plannings fournisseurs sont annuels ; passé la
+ * dernière échéance planifiée, il faut réimporter un nouveau planning depuis le
+ * portail. On alerte SEUIL_REAPPRO_JOURS avant cette dernière échéance.
+ */
+export const SEUIL_REAPPRO_JOURS = 30;
+
 /** Intervalle de recalcul du mur d'affichage (ms) : 24 h. */
 export const INTERVALLE_RECALCUL_MS = 24 * 60 * 60 * 1000;
