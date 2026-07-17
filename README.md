@@ -25,6 +25,55 @@ ni n'évalue les résultats (qui restent sur les portails fournisseurs et Kalila
 > contrainte « aucune dépendance réseau au runtime » (PRD §9, défendabilité
 > COFRAC §7.6). Le rendu typographique est identique.
 
+## Synchronisation multi-poste (optionnelle · Supabase)
+
+Par défaut l'application est **100 % locale** (chaque poste garde sa config dans
+IndexedDB). Pour **partager la configuration entre plusieurs ordinateurs**, on
+peut activer une synchronisation via **Supabase** (Postgres hébergé). Le mode
+reste **hybride** : Supabase est la source partagée, IndexedDB sert de cache
+hors-ligne (si Supabase est injoignable, le poste continue de fonctionner en
+local et resynchronise ensuite).
+
+**Activation (aucune modification de code) :**
+
+1. Créer un projet sur <https://supabase.com>.
+2. Dans le SQL Editor, créer la table de configuration :
+
+   ```sql
+   create table if not exists public.eeq_config (
+     id text primary key default 'singleton',
+     data jsonb not null,
+     updated_at timestamptz not null default now()
+   );
+
+   alter table public.eeq_config enable row level security;
+
+   -- Outil interne mono-labo : lecture/écriture autorisées avec la clé anon.
+   create policy "eeq_config_read"   on public.eeq_config for select using (true);
+   create policy "eeq_config_insert" on public.eeq_config for insert with check (true);
+   create policy "eeq_config_update" on public.eeq_config for update using (true) with check (true);
+   ```
+
+3. Récupérer, dans *Project Settings → API* : l'**URL du projet** et la **clé
+   anon (public)**.
+4. Les déclarer en variables d'environnement (localement dans un fichier
+   `.env`, ou sur Vercel dans *Settings → Environment Variables*) :
+
+   ```
+   VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+   ```
+
+5. Reconstruire / redéployer. Un indicateur **« Synchronisé »** apparaît en
+   en-tête ; **« Hors-ligne · local »** s'affiche si Supabase est injoignable.
+
+> **Sécurité :** la clé anon est publique (embarquée dans l'application). Avec la
+> politique ci-dessus, toute personne disposant de l'URL et de la clé peut
+> lire/écrire la configuration. C'est acceptable pour un outil interne sur poste
+> maîtrisé ; pour restreindre l'accès, ajouter une authentification Supabase.
+> Sans ces variables, l'application reste strictement locale (comportement par
+> défaut, aucune donnée ne sort du poste).
+
 ## Prérequis
 
 - Node.js ≥ 18 (testé avec Node 22) et npm.

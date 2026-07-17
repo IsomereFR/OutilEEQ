@@ -8,6 +8,7 @@ import { AdminView } from './features/admin/AdminView';
 export function App() {
   const ready = useStore((s) => s.ready);
   const error = useStore((s) => s.error);
+  const syncEtat = useStore((s) => s.syncEtat);
   const vue = useNav((s) => s.vue);
   const aller = useNav((s) => s.aller);
 
@@ -15,9 +16,23 @@ export function App() {
     void initStore();
   }, []);
 
+  // Indicateur de synchro (affiché seulement si la synchro est configurée).
+  const badgeSync =
+    syncEtat === 'synchro' ? (
+      <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-sauge">
+        <span className="h-2 w-2 rounded-full bg-sauge" /> Synchronisé
+      </span>
+    ) : syncEtat === 'hors-ligne' ? (
+      <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-ambre">
+        <span className="h-2 w-2 rounded-full bg-ambre" /> Hors-ligne · local
+      </span>
+    ) : null;
+
   // Accès discret à l'espace administrateur (non mis en avant sur le mur).
-  const actions =
-    vue === 'dashboard' ? (
+  const actions = (
+    <>
+      {badgeSync}
+      {vue === 'dashboard' ? (
       <button
         type="button"
         onClick={() => aller('admin')}
@@ -34,7 +49,9 @@ export function App() {
       >
         ← Retour à l'affichage
       </button>
-    );
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-full">
