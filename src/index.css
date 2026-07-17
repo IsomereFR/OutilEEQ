@@ -16,11 +16,24 @@
     height: 100%;
   }
   body {
-    @apply bg-creme text-encre font-sans antialiased;
+    @apply text-encre font-sans antialiased;
+    background-color: #f7f2ea;
+    /* Halos chauds discrets (terracotta en haut, marine en bas) sur le crème. */
+    background-image:
+      radial-gradient(1100px 480px at 100% -8%, rgba(192, 98, 63, 0.07), transparent 60%),
+      radial-gradient(900px 460px at -8% 108%, rgba(20, 48, 74, 0.06), transparent 55%);
+    background-attachment: fixed;
   }
   h1,
   h2,
   h3 {
     @apply font-title text-marine;
+  }
+}
+
+@layer components {
+  /* Intitulé de section discret (surtitre) en marine. */
+  .surtitre {
+    @apply text-[11px] font-title font-bold uppercase tracking-[0.14em] text-marine/70;
   }
 }

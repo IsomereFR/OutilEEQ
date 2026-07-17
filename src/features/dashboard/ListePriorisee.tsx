@@ -13,7 +13,7 @@ import { useNav } from '../../store/useNav';
 import { trierParPriorite } from '../../domain/tri';
 import { niveauUrgence } from '../../domain/urgence';
 import { joursRestants, fmtDate } from '../../domain/dates';
-import { LIBELLE_STATUT } from '../../theme/tokens';
+import { LIBELLE_STATUT, COULEUR_URGENCE } from '../../theme/tokens';
 import { Carte, CarteTitre } from '../../ui/Carte';
 import { PastilleUrgence } from '../../ui/Pastille';
 import { SelectMulti, type Option } from '../../ui/SelectMulti';
@@ -25,6 +25,12 @@ function libelleJours(iso: string): { texte: string; retard: boolean } {
   if (jr < 0) return { texte: `+${-jr} j de retard`, retard: true };
   if (jr === 0) return { texte: "Aujourd'hui", retard: false };
   return { texte: `J-${jr}`, retard: false };
+}
+
+/** Teinte de fond légère d'un hex (compteur de jours restants). */
+function teinte(hex: string, alpha: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
 export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
@@ -92,10 +98,15 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
                 const jours = libelleJours(e.dateEcheanceRealisation);
                 const autos = e.automateIds.map((id) => nomAutomate.get(id) ?? id);
                 const deplie = ouvert === e.id;
+                const niv = niveauUrgence(e);
+                const couleur = COULEUR_URGENCE[niv];
                 return (
                   <Fragment key={e.id}>
                     <tr className="border-b border-brume/60 hover:bg-creme/40">
-                      <td className={`${td} font-medium text-marine`}>
+                      <td
+                        className={`${td} font-medium text-marine`}
+                        style={{ boxShadow: `inset 4px 0 0 ${couleur}` }}
+                      >
                         {nomFournisseur.get(e.fournisseurId) ?? e.fournisseurId}
                       </td>
                       <td className={td}>{libelleProgramme.get(e.programmeId) ?? e.programmeId}</td>
@@ -103,12 +114,13 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
                       <td className={`${td} tabular-nums whitespace-nowrap`}>
                         {fmtDate(e.dateEcheanceRealisation)}
                       </td>
-                      <td
-                        className={`${td} tabular-nums whitespace-nowrap ${
-                          jours.retard ? 'text-terracotta font-medium' : 'text-encre/80'
-                        }`}
-                      >
-                        {jours.texte}
+                      <td className={`${td} whitespace-nowrap`}>
+                        <span
+                          className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium tabular-nums"
+                          style={{ backgroundColor: teinte(couleur, 0.14), color: couleur }}
+                        >
+                          {jours.texte}
+                        </span>
                       </td>
                       <td className={`${td} text-encre/70`}>
                         {autos.length > 0 ? autos.join(', ') : <span className="text-encre/30">·</span>}
