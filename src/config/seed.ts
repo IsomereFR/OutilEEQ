@@ -9,6 +9,7 @@
 import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '../domain/types';
 import { PROBIOQUAL_PROGRAMMES, PROBIOQUAL_ENQUETES } from './probioqual';
 import { BP_PROGRAMMES, BP_ENQUETES } from './bioprospective';
+import { BIORAD_PROGRAMMES, BIORAD_ENQUETES } from './biorad';
 
 /**
  * Version du jeu d'amorce. À incrémenter quand on modifie les référentiels de
@@ -16,7 +17,7 @@ import { BP_PROGRAMMES, BP_ENQUETES } from './bioprospective';
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 9;
+export const SEED_VERSION = 10;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -24,6 +25,7 @@ const fournisseurs: Fournisseur[] = [
   { id: 'f-asqualab', nom: 'Asqualab', sigle: 'ASQ' },
   { id: 'f-ctcb', nom: 'CTCB', sigle: 'CTCB' },
   { id: 'f-bioprospective', nom: 'Biologie Prospective', sigle: 'BP' },
+  { id: 'f-biorad', nom: 'BIORAD (EQAS)', sigle: 'EQAS' },
   { id: 'f-riqas', nom: 'RIQAS (Randox)', sigle: 'RIQAS' },
   // À COMPLÉTER : Eurotrol, GEHT, etc.
 ];
@@ -61,13 +63,13 @@ const automates: Automate[] = [
   A('a-manuel', 'Techniques manuelles', ['Techniques Manuelles']),
 ];
 
-// --- Programmes EEQ : plannings importés (ProBioQual + Biologie Prospective) ---
-const programmes: Programme[] = [...PROBIOQUAL_PROGRAMMES, ...BP_PROGRAMMES];
+// --- Programmes EEQ : plannings importés (ProBioQual + Biologie Prospective + BIORAD)
+const programmes: Programme[] = [...PROBIOQUAL_PROGRAMMES, ...BP_PROGRAMMES, ...BIORAD_PROGRAMMES];
 
 // --- Enquêtes : plannings importés, NON AFFECTÉES. L'admin attribue chaque
 //     programme à un automate (cf. AttributionProgrammes), ce qui affecte les
 //     enquêtes correspondantes et les fait apparaître au mur.
-const enquetes: Enquete[] = [...PROBIOQUAL_ENQUETES, ...BP_ENQUETES];
+const enquetes: Enquete[] = [...PROBIOQUAL_ENQUETES, ...BP_ENQUETES, ...BIORAD_ENQUETES];
 
 /** Jeu de données d'amorce complet. */
 export function seed(): AppData {

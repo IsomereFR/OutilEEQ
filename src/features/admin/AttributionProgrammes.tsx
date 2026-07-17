@@ -34,9 +34,13 @@ export function AttributionProgrammes() {
         Attribution des programmes aux automates
       </CarteTitre>
       <div className="px-4 py-2">
-        <p className="text-xs text-encre/60 mb-2">
+        <p className="text-xs text-encre/60 mb-1">
           Choisissez l'automate de chaque programme. L'attribution affecte toutes les enquêtes du
           programme et les fait apparaître au mur d'affichage.
+        </p>
+        <p className="text-xs text-sauge">
+          Enregistrement automatique · les attributions sont conservées, y compris lors des mises à
+          jour de plannings. Exportez le JSON (en haut) pour une sauvegarde permanente hors du poste.
         </p>
       </div>
       <div className="overflow-x-auto">
