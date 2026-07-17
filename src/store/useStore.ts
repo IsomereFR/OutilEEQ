@@ -15,6 +15,7 @@ import { chargerAppData, sauverAppData, APPDATA_VIDE } from './db';
 import { seed, SEED_VERSION } from '../config/seed';
 import { fusionner, type ModeImport } from './backup';
 import { fusionnerAmorce } from './fusion';
+import { syncActif, chargerDistant, sauverDistant } from './sync';
 
 let SEQ = 0;
 /** Identifiant local unique (mono-poste). */
@@ -23,9 +24,14 @@ export function uid(prefixe = 'id'): string {
   return `${prefixe}-${Date.now().toString(36)}-${SEQ.toString(36)}`;
 }
 
+/** État de la synchronisation multi-poste. */
+export type SyncEtat = 'local' | 'synchro' | 'hors-ligne';
+
 interface StoreState extends AppData {
   ready: boolean;
   error: string | null;
+  /** local = non configurée ; synchro = Supabase OK ; hors-ligne = échec réseau. */
+  syncEtat: SyncEtat;
 
   /** Modifie le statut d'une enquête. */
   setStatut(id: string, statut: Statut): void;
@@ -78,6 +84,7 @@ export const useStore = create<StoreState>((set, get) => ({
   ...APPDATA_VIDE,
   ready: false,
   error: null,
+  syncEtat: syncActif ? 'synchro' : 'local',
 
   setStatut: (id, statut) =>
     set((s) => ({
@@ -153,25 +160,47 @@ function migrerAutomates(data: AppData): AppData {
   };
 }
 
-// --- Initialisation : charge depuis IndexedDB, sinon seed --------------------
+// --- Initialisation : Supabase (partagé) prioritaire, sinon IndexedDB, sinon seed
 export async function initStore(): Promise<void> {
   try {
-    const data = await chargerAppData();
-    let etat: AppData;
-    if (data && (data.seedVersion ?? 0) >= SEED_VERSION) {
-      etat = data; // à jour (attributions locales conservées)
-    } else if (data) {
-      etat = fusionnerAmorce(data, seed()); // fusion : attributions préservées
-    } else {
-      etat = seed(); // premier chargement
+    const local = await chargerAppData(); // cache hors-ligne
+
+    // Source partagée (Supabase) si configurée et joignable.
+    let distant: AppData | null = null;
+    let syncEtat: SyncEtat = syncActif ? 'synchro' : 'local';
+    if (syncActif) {
+      try {
+        distant = await chargerDistant();
+      } catch (e) {
+        syncEtat = 'hors-ligne';
+        // eslint-disable-next-line no-console
+        console.warn('Supabase injoignable, mode hors-ligne (cache local) :', e);
+      }
     }
+
+    // Base = données partagées si dispo, sinon cache local.
+    const base = distant ?? local;
+    let etat: AppData;
+    if (base && (base.seedVersion ?? 0) >= SEED_VERSION) etat = base;
+    else if (base) etat = fusionnerAmorce(base, seed()); // fusion : attributions préservées
+    else etat = seed(); // tout premier chargement
     etat = migrerAutomates(etat); // remap des identifiants d'automates renommés
-    await sauverAppData(etat);
-    useStore.setState({ ...etat, ready: true, error: null });
+
+    await sauverAppData(etat); // cache local
+    // Pousse l'état (fusionné) vers Supabase pour l'initialiser/le mettre à jour.
+    if (syncActif && syncEtat === 'synchro') {
+      try {
+        await sauverDistant(etat);
+      } catch {
+        syncEtat = 'hors-ligne';
+      }
+    }
+    useStore.setState({ ...etat, ready: true, error: null, syncEtat });
   } catch (e) {
     useStore.setState({
       ...seed(),
       ready: true,
+      syncEtat: syncActif ? 'hors-ligne' : 'local',
       error:
         'Stockage local indisponible. Les données ne seront pas conservées après fermeture. Exportez régulièrement (JSON).',
     });
@@ -180,14 +209,26 @@ export async function initStore(): Promise<void> {
   }
 }
 
-// --- Sauvegarde automatique confirmée (débouncée) ---------------------------
+// --- Sauvegarde automatique débouncée : cache local + Supabase (si actif) ----
 let timer: ReturnType<typeof setTimeout> | null = null;
 useStore.subscribe((s) => {
   if (!s.ready) return;
   if (timer) clearTimeout(timer);
+  const snap = extraireAppData(s);
   timer = setTimeout(() => {
-    sauverAppData(extraireAppData(s)).catch((e) =>
+    sauverAppData(snap).catch((e) =>
       useStore.setState({ error: 'Échec de sauvegarde locale : ' + String(e) }),
     );
-  }, 300);
+    if (syncActif) {
+      sauverDistant(snap)
+        .then(() => {
+          if (useStore.getState().syncEtat !== 'synchro') useStore.setState({ syncEtat: 'synchro' });
+        })
+        .catch((e) => {
+          useStore.setState({ syncEtat: 'hors-ligne' });
+          // eslint-disable-next-line no-console
+          console.warn('Échec de synchro Supabase (conservé en local) :', e);
+        });
+    }
+  }, 400);
 });
