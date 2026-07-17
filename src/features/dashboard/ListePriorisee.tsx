@@ -81,12 +81,12 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
           <table className="w-full text-sm border-collapse">
             <thead className="sticky top-0 z-10 bg-surface/95 backdrop-blur border-b border-brume text-xs">
               <tr>
-                <th className={th}>Fournisseur</th>
+                <th className={th}>Automate(s)</th>
                 <th className={th}>Programme</th>
+                <th className={th}>Fournisseur</th>
                 <th className={th}>Envoi</th>
                 <th className={th}>Échéance</th>
                 <th className={th}>Jours restants</th>
-                <th className={th}>Automate(s)</th>
                 <th className={th}>Site</th>
                 <th className={th}>Urgence</th>
                 <th className={th}>Statut</th>
@@ -107,9 +107,12 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
                         className={`${td} font-medium text-marine`}
                         style={{ boxShadow: `inset 4px 0 0 ${couleur}` }}
                       >
-                        {nomFournisseur.get(e.fournisseurId) ?? e.fournisseurId}
+                        {autos.length > 0 ? autos.join(', ') : <span className="text-encre/30">Non affecté</span>}
                       </td>
                       <td className={td}>{libelleProgramme.get(e.programmeId) ?? e.programmeId}</td>
+                      <td className={`${td} text-encre/70`}>
+                        {nomFournisseur.get(e.fournisseurId) ?? e.fournisseurId}
+                      </td>
                       <td className={`${td} text-encre/70`}>{e.envoiRef}</td>
                       <td className={`${td} tabular-nums whitespace-nowrap`}>
                         {fmtDate(e.dateEcheanceRealisation)}
@@ -121,9 +124,6 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
                         >
                           {jours.texte}
                         </span>
-                      </td>
-                      <td className={`${td} text-encre/70`}>
-                        {autos.length > 0 ? autos.join(', ') : <span className="text-encre/30">·</span>}
                       </td>
                       <td className={`${td} text-encre/70 whitespace-nowrap`}>
                         {nomSite.get(e.siteId) ?? <span className="text-encre/30">·</span>}

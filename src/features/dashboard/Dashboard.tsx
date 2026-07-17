@@ -13,6 +13,7 @@ import { appliquerFiltres, type Filtres as FiltresValeurs } from '../../domain/v
 import { Carte } from '../../ui/Carte';
 import { BandeauAlerte } from './BandeauAlerte';
 import { CartesIndicateurs } from './CartesIndicateurs';
+import { ParAutomate } from './ParAutomate';
 import { Filtres } from './Filtres';
 import { Frise } from './Frise';
 import { ListePriorisee } from './ListePriorisee';
@@ -42,7 +43,17 @@ export function Dashboard() {
       {/* 2 · Cartes indicateurs (indicateurs() gère l'inbox : toutes les enquêtes) */}
       <CartesIndicateurs enquetes={enquetes} onVoirInbox={ouvrirInbox} />
 
-      {/* 3 · Filtres transverses */}
+      {/* 3 · À réaliser PAR AUTOMATE (organisation par machine, non par fournisseur).
+             Cliquer une tuile filtre la liste priorisée sur l'automate. */}
+      <ParAutomate
+        enquetes={enquetes}
+        automateActif={filtres.automateId}
+        onChoisirAutomate={(automateId) =>
+          setFiltres((f) => ({ ...f, automateId: f.automateId === automateId ? undefined : automateId }))
+        }
+      />
+
+      {/* 4 · Filtres transverses */}
       <Filtres filtres={filtres} onChange={setFiltres} />
 
       {/* 4 · Frise chronologique (90 j) sur les enquêtes visibles */}

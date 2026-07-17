@@ -1,10 +1,19 @@
 // ============================================================================
-//  Données d'amorce (cf. PRD §11). ⚠️ À COMPLÉTER avec les référentiels réels
-//  BIOXA (9 sites, abonnements EEQ effectifs, parc d'automates complet).
+//  Données d'amorce (cf. PRD §11). Parc d'automates réel BIOXA fourni, organisé
+//  PAR DISCIPLINE. ⚠️ À COMPLÉTER : les 9 sites (ici un seul site d'amorce), les
+//  abonnements EEQ réels et le rattachement automate ↔ site.
 //  Les enquêtes ci-dessous sont une DÉMO couvrant les 4 niveaux d'urgence.
 // ============================================================================
 import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '../domain/types';
 import { isoDecale } from '../domain/dates';
+
+/**
+ * Version du jeu d'amorce. À incrémenter quand on modifie les référentiels de
+ * démonstration que l'on souhaite voir appliqués automatiquement (cf. initStore
+ * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
+ * régénération remplace l'état local (données de démonstration, pas réelles).
+ */
+export const SEED_VERSION = 3;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -13,46 +22,101 @@ const fournisseurs: Fournisseur[] = [
   { id: 'f-ctcb', nom: 'CTCB', sigle: 'CTCB' },
   { id: 'f-bioprospective', nom: 'Biologie Prospective', sigle: 'BP' },
   { id: 'f-riqas', nom: 'RIQAS (Randox)', sigle: 'RIQAS' },
-  // À COMPLÉTER : Eurotrol, GEHT, etc. selon abonnements BIOXA.
+  // À COMPLÉTER : Eurotrol, GEHT, etc.
 ];
 
 // --- Sites (les 9 sites du réseau — À COMPLÉTER avec codes réels) -------------
 const sites: Site[] = [
   { id: 's-central', nom: 'Plateau technique central', code: 'PTC' },
-  { id: 's-site2', nom: 'Site 2 (à nommer)', code: 'S2' },
   // À COMPLÉTER : 9 sites au total.
 ];
 
-// --- Automates (amorce connue — À COMPLÉTER) ---------------------------------
+// --- Parc d'automates réel, par discipline (rattachement site : À COMPLÉTER) --
+// TLA 1 et TLA 2 couvrent DEUX disciplines (HbA1C et Électrophorèse).
+const A = (id: string, nom: string, disciplines: string[], modele = ''): Automate => ({
+  id,
+  nom,
+  modele,
+  siteId: 's-central',
+  disciplines,
+  actif: true,
+});
+
 const automates: Automate[] = [
-  { id: 'a-atellica', nom: 'Atellica IM 1600', modele: 'Siemens Atellica IM 1600', siteId: 's-central', discipline: 'Immuno-analyse', actif: true },
-  { id: 'a-vision', nom: 'ORTHO VISION', modele: 'Ortho VISION', siteId: 's-central', discipline: 'Immuno-hématologie', actif: true },
-  { id: 'a-epoc', nom: 'epoc', modele: 'Siemens epoc', siteId: 's-central', discipline: 'Gaz du sang', actif: true },
-  // À COMPLÉTER : parc réel rattaché aux 9 sites.
+  // Biochimie
+  A('a-ch1', 'Atellica CH1', ['Biochimie'], 'Siemens Atellica CH'),
+  A('a-ch2', 'Atellica CH2', ['Biochimie'], 'Siemens Atellica CH'),
+  A('a-ch3', 'Atellica CH3', ['Biochimie'], 'Siemens Atellica CH'),
+  A('a-ch4', 'Atellica CH4', ['Biochimie'], 'Siemens Atellica CH'),
+  // Immunologie
+  A('a-im1', 'Atellica IM1', ['Immunologie'], 'Siemens Atellica IM'),
+  A('a-im2', 'Atellica IM2', ['Immunologie'], 'Siemens Atellica IM'),
+  A('a-im3', 'Atellica IM3', ['Immunologie'], 'Siemens Atellica IM'),
+  A('a-im4', 'Atellica IM4', ['Immunologie'], 'Siemens Atellica IM'),
+  // Immuno-enzymologie
+  A('a-liaisonxl', 'Liaison XL', ['Immuno-enzymologie'], 'DiaSorin Liaison XL'),
+  // Hémostase
+  A('a-cs1', 'CS-5100 1', ['Hémostase'], 'Sysmex CS-5100'),
+  A('a-cs2', 'CS-5100 2', ['Hémostase'], 'Sysmex CS-5100'),
+  // Hématologie
+  A('a-xn1', 'XN1', ['Hématologie'], 'Sysmex XN'),
+  A('a-xn2', 'XN2', ['Hématologie'], 'Sysmex XN'),
+  A('a-xn3', 'XN3', ['Hématologie'], 'Sysmex XN'),
+  A('a-xn4', 'XN4', ['Hématologie'], 'Sysmex XN'),
+  // Immunohématologie
+  A('a-vision1', 'Vision 1', ['Immunohématologie'], 'Ortho VISION'),
+  A('a-vision2', 'Vision 2', ['Immunohématologie'], 'Ortho VISION'),
+  // HbA1C + Électrophorèse (automates partagés)
+  A('a-tla1', 'TLA 1', ['HbA1C', 'Électrophorèse des protéines']),
+  A('a-tla2', 'TLA 2', ['HbA1C', 'Électrophorèse des protéines']),
+  // Électrophorèse des protéines
+  A('a-octa', 'Octa', ['Électrophorèse des protéines'], 'Sebia'),
 ];
 
 // --- Programmes EEQ (exemples reliant fournisseur + automates par défaut) -----
 const programmes: Programme[] = [
   {
-    id: 'p-pbq-immuno', fournisseurId: 'f-probioq', codeProgramme: 'IMM-01', libelle: 'Immuno-analyse générale',
-    discipline: 'Immuno-analyse', parametres: ['TSH', 'T4L', 'Ferritine'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-atellica'],
+    id: 'p-bioch', fournisseurId: 'f-probioq', codeProgramme: 'BIOCH', libelle: 'Biochimie générale',
+    discipline: 'Biochimie', parametres: ['Glucose', 'Créatinine', 'Na', 'K'], frequence: 'Mensuelle',
+    automatesParDefaut: ['a-ch1', 'a-ch2', 'a-ch3', 'a-ch4'],
   },
   {
-    id: 'p-asq-gds', fournisseurId: 'f-asqualab', codeProgramme: 'GDS-02', libelle: 'Gaz du sang',
-    discipline: 'Gaz du sang', parametres: ['pH', 'pCO2', 'pO2'], frequence: 'Trimestrielle',
-    automatesParDefaut: ['a-epoc'],
+    id: 'p-immuno', fournisseurId: 'f-probioq', codeProgramme: 'IMMUNO', libelle: 'Immuno-analyse',
+    discipline: 'Immunologie', parametres: ['TSH', 'T4L', 'Ferritine'], frequence: 'Mensuelle',
+    automatesParDefaut: ['a-im1', 'a-im2', 'a-im3', 'a-im4'],
   },
   {
-    id: 'p-bp-ih', fournisseurId: 'f-bioprospective', codeProgramme: 'IH-03', libelle: 'Immuno-hématologie',
-    discipline: 'Immuno-hématologie', parametres: ['Groupe ABO', 'RAI'], frequence: '3 / an',
-    automatesParDefaut: ['a-vision'],
+    id: 'p-hemostase', fournisseurId: 'f-probioq', codeProgramme: 'HEMOS', libelle: 'Hémostase',
+    discipline: 'Hémostase', parametres: ['TP', 'TCA', 'Fibrinogène'], frequence: 'Trimestrielle',
+    automatesParDefaut: ['a-cs1', 'a-cs2'],
+  },
+  {
+    id: 'p-hemato', fournisseurId: 'f-asqualab', codeProgramme: 'HEMATO', libelle: 'Hématologie cellulaire',
+    discipline: 'Hématologie', parametres: ['NFS', 'Plaquettes'], frequence: 'Trimestrielle',
+    automatesParDefaut: ['a-xn1', 'a-xn2', 'a-xn3', 'a-xn4'],
+  },
+  {
+    id: 'p-ih', fournisseurId: 'f-bioprospective', codeProgramme: 'IH', libelle: 'Immuno-hématologie',
+    discipline: 'Immunohématologie', parametres: ['Groupe ABO', 'RAI'], frequence: '3 / an',
+    automatesParDefaut: ['a-vision1', 'a-vision2'],
+  },
+  {
+    id: 'p-hba1c', fournisseurId: 'f-riqas', codeProgramme: 'HBA1C', libelle: 'HbA1C',
+    discipline: 'HbA1C', parametres: ['HbA1C'], frequence: 'Mensuelle',
+    automatesParDefaut: ['a-tla1', 'a-tla2'],
+  },
+  {
+    id: 'p-eph', fournisseurId: 'f-asqualab', codeProgramme: 'EPH', libelle: 'Électrophorèse des protéines',
+    discipline: 'Électrophorèse des protéines', parametres: ['Albumine', 'Globulines'], frequence: 'Semestrielle',
+    automatesParDefaut: ['a-octa'],
   },
 ];
 
 // --- Enquêtes de démonstration (4 niveaux d'urgence + inbox + réalisée) -------
 const nowISO = new Date().toISOString();
-const mkEnq = (o: Partial<Enquete> & Pick<Enquete, 'id' | 'programmeId' | 'fournisseurId' | 'envoiRef' | 'dateEcheanceRealisation'>): Enquete => ({
+const mkEnq = (
+  o: Partial<Enquete> & Pick<Enquete, 'id' | 'programmeId' | 'fournisseurId' | 'envoiRef' | 'dateEcheanceRealisation'>,
+): Enquete => ({
   dateOuverture: isoDecale(-20),
   dateLimiteSaisie: isoDecale(20),
   automateIds: [],
@@ -67,24 +131,24 @@ const mkEnq = (o: Partial<Enquete> & Pick<Enquete, 'id' | 'programmeId' | 'fourn
 });
 
 const enquetes: Enquete[] = [
-  // En retard (échéance passée, non réalisée)
-  mkEnq({ id: 'e-retard', programmeId: 'p-pbq-immuno', fournisseurId: 'f-probioq', envoiRef: 'Envoi 1/12',
-    dateEcheanceRealisation: isoDecale(-4), automateIds: ['a-atellica'], statut: 'a_realiser' }),
-  // Urgent J-7
-  mkEnq({ id: 'e-urgent', programmeId: 'p-asq-gds', fournisseurId: 'f-asqualab', envoiRef: 'Cycle 2026-A',
-    dateEcheanceRealisation: isoDecale(3), automateIds: ['a-epoc'], statut: 'a_realiser' }),
-  // À surveiller (8-15 j)
-  mkEnq({ id: 'e-surv', programmeId: 'p-bp-ih', fournisseurId: 'f-bioprospective', envoiRef: 'Envoi 2/3',
-    dateEcheanceRealisation: isoDecale(11), automateIds: ['a-vision'], statut: 'a_venir' }),
-  // À venir (> 15 j)
-  mkEnq({ id: 'e-venir', programmeId: 'p-pbq-immuno', fournisseurId: 'f-probioq', envoiRef: 'Envoi 2/12',
-    dateEcheanceRealisation: isoDecale(35), automateIds: ['a-atellica'], statut: 'a_venir' }),
+  // En retard (Hématologie, 2 automates)
+  mkEnq({ id: 'e-retard', programmeId: 'p-hemato', fournisseurId: 'f-asqualab', envoiRef: 'Envoi 1/4',
+    dateEcheanceRealisation: isoDecale(-4), automateIds: ['a-xn1', 'a-xn2'], statut: 'a_realiser' }),
+  // Urgent J-7 (Biochimie, 4 automates)
+  mkEnq({ id: 'e-urgent', programmeId: 'p-bioch', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-A',
+    dateEcheanceRealisation: isoDecale(3), automateIds: ['a-ch1', 'a-ch2', 'a-ch3', 'a-ch4'], statut: 'a_realiser' }),
+  // À surveiller (Immunologie, 2 automates)
+  mkEnq({ id: 'e-surv', programmeId: 'p-immuno', fournisseurId: 'f-probioq', envoiRef: 'Envoi 5/12',
+    dateEcheanceRealisation: isoDecale(11), automateIds: ['a-im1', 'a-im2'], statut: 'a_venir' }),
+  // À venir (Hémostase, 2 automates)
+  mkEnq({ id: 'e-venir', programmeId: 'p-hemostase', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-2',
+    dateEcheanceRealisation: isoDecale(35), automateIds: ['a-cs1', 'a-cs2'], statut: 'a_venir' }),
   // Non affectée (inbox « À affecter »)
-  mkEnq({ id: 'e-inbox', programmeId: 'p-asq-gds', fournisseurId: 'f-asqualab', envoiRef: 'Cycle 2026-B',
+  mkEnq({ id: 'e-inbox', programmeId: 'p-hba1c', fournisseurId: 'f-riqas', envoiRef: 'Envoi 7/12',
     dateEcheanceRealisation: isoDecale(9), automateIds: [], affectee: false, statut: 'a_venir', source: 'excel' }),
-  // Réalisée ce mois (pour le KPI)
-  mkEnq({ id: 'e-realisee', programmeId: 'p-bp-ih', fournisseurId: 'f-bioprospective', envoiRef: 'Envoi 1/3',
-    dateEcheanceRealisation: isoDecale(-6), automateIds: ['a-vision'], statut: 'realise' }),
+  // Réalisée ce mois (Immunohématologie)
+  mkEnq({ id: 'e-realisee', programmeId: 'p-ih', fournisseurId: 'f-bioprospective', envoiRef: 'Envoi 1/3',
+    dateEcheanceRealisation: isoDecale(-6), automateIds: ['a-vision1'], statut: 'realise' }),
 ];
 
 /** Jeu de données d'amorce complet. */
@@ -98,5 +162,6 @@ export function seed(): AppData {
     profils: [],
     piecesJointes: [],
     journal: [],
+    seedVersion: SEED_VERSION,
   };
 }
