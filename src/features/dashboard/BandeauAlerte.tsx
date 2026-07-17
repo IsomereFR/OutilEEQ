@@ -29,10 +29,14 @@ export function BandeauAlerte({
   return (
     <div
       role="alert"
-      className="rounded-xl2 bg-marine text-white shadow-carte px-5 py-4 flex flex-wrap items-center gap-x-2 gap-y-2"
+      style={{ backgroundImage: 'linear-gradient(105deg, #14304A 0%, #0E2337 100%)' }}
+      className="rounded-xl2 text-white shadow-carte px-5 py-4 flex flex-wrap items-center gap-x-2.5 gap-y-2 ring-1 ring-marine/40"
     >
-      <span className="inline-block h-2.5 w-2.5 rounded-full bg-terracotta" aria-hidden />
-      <span className="font-title font-bold text-sm">Alerte planning</span>
+      <span className="relative flex h-2.5 w-2.5" aria-hidden>
+        <span className="absolute inline-flex h-full w-full rounded-full bg-terracotta opacity-60 animate-ping" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-terracotta" />
+      </span>
+      <span className="font-title font-bold text-sm tracking-wide">Alerte planning</span>
       <span className="text-white/40" aria-hidden>
         ·
       </span>
