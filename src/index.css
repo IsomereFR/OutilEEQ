@@ -1,0 +1,26 @@
+/* Polices embarquées localement (aucun appel réseau au runtime, cf. PRD §9). */
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/manrope/800.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-creme text-encre font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-title text-marine;
+  }
+}
