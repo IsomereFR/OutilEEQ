@@ -16,7 +16,7 @@ import { BP_PROGRAMMES, BP_ENQUETES } from './bioprospective';
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 9;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -55,8 +55,9 @@ const automates: Automate[] = [
   A('a-cs', 'CS-5100', ['Hémostase'], 'Sysmex CS-5100'),
   A('a-xn', 'XN', ['Hématologie'], 'Sysmex XN'),
   A('a-vision', 'Vision', ['Immunohématologie'], 'Ortho VISION'),
-  A('a-tla', 'TLA', ['HbA1C'], 'HbA1C'),
-  A('a-octa', 'Octa', ['Électrophorèse des protéines'], 'Sebia'),
+  // TLA et Octa : même famille (HbA1c, ELP, PBJ, CDT).
+  A('a-tla', 'TLA', ['HbA1c', 'ELP', 'PBJ', 'CDT']),
+  A('a-octa', 'Octa', ['HbA1c', 'ELP', 'PBJ', 'CDT'], 'Sebia'),
   A('a-manuel', 'Techniques manuelles', ['Techniques Manuelles']),
 ];
 

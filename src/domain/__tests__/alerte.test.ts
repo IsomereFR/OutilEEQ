@@ -34,9 +34,9 @@ describe('niveauAlerte (4 paliers, dépassé masqué)', () => {
     expect(niveauAlerte(enq(4), REF)).toBe('j7');
     expect(niveauAlerte(enq(7), REF)).toBe('j7');
   });
-  it('à jour entre 8 et 15 jours (dans la fenêtre)', () => {
-    expect(niveauAlerte(enq(8), REF)).toBe('a_jour');
-    expect(niveauAlerte(enq(15), REF)).toBe('a_jour');
+  it('sous 15 jours entre 8 et 15 jours (indication, pas de mise en avant)', () => {
+    expect(niveauAlerte(enq(8), REF)).toBe('j15');
+    expect(niveauAlerte(enq(15), REF)).toBe('j15');
   });
   it('null (masquée) au-delà de 15 jours', () => {
     expect(niveauAlerte(enq(16), REF)).toBeNull();
@@ -63,8 +63,8 @@ describe('pireAlerte', () => {
 });
 
 describe('comptesAlerte', () => {
-  it('ventile par palier (hors à jour)', () => {
-    const c = comptesAlerte([enq(0), enq(2), enq(3), enq(6), enq(20), enq(-1)], REF);
-    expect(c).toEqual({ aujourdhui: 1, j3: 2, j7: 1 });
+  it('ventile par palier ; ignore dépassé et au-delà de 15 j', () => {
+    const c = comptesAlerte([enq(0), enq(2), enq(3), enq(6), enq(12), enq(20), enq(-1)], REF);
+    expect(c).toEqual({ aujourdhui: 1, j3: 2, j7: 1, j15: 1 });
   });
 });

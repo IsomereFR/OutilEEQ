@@ -54,10 +54,11 @@ export function Dashboard() {
           <div className="surtitre">EEQ à réaliser</div>
           <div className="font-title font-extrabold text-marine text-xl capitalize">{dateJour}</div>
         </div>
-        <div className="ml-auto grid grid-cols-3 gap-3">
+        <div className="ml-auto grid grid-cols-2 md:grid-cols-4 gap-3">
           <Synthese couleur={COULEUR_ALERTE.aujourdhui} valeur={c.aujourdhui} libelle={LIBELLE_ALERTE.aujourdhui} />
           <Synthese couleur={COULEUR_ALERTE.j3} valeur={c.j3} libelle={LIBELLE_ALERTE.j3} />
           <Synthese couleur={COULEUR_ALERTE.j7} valeur={c.j7} libelle={LIBELLE_ALERTE.j7} />
+          <Synthese couleur={COULEUR_ALERTE.j15} valeur={c.j15} libelle={LIBELLE_ALERTE.j15} />
         </div>
       </div>
 

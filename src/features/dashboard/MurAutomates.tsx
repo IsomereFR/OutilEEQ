@@ -21,8 +21,7 @@ const ORDRE_DISCIPLINES = [
   'Hémostase',
   'Hématologie',
   'Immunohématologie',
-  'HbA1C',
-  'Électrophorèse des protéines',
+  'HbA1c', // famille TLA / Octa (HbA1c · ELP · PBJ · CDT)
   'Techniques Manuelles',
 ];
 
@@ -111,33 +110,42 @@ export function MurAutomates({ enquetes }: { enquetes: Enquete[] }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {calmes.map(({ automate: a, items }) => {
               const suivant = items[0];
+              const niv = suivant ? (niveauAlerte(suivant) as NiveauAlerte) : null;
+              const couleur = niv ? COULEUR_ALERTE[niv] : COULEUR_ALERTE.a_jour;
               return (
-                <div key={a.id} className="rounded-xl2 border border-brume bg-surface px-4 py-3">
-                  <div className="surtitre text-[10px] truncate">{a.disciplines.join(' · ')}</div>
-                  <div className="font-title font-bold text-marine text-base truncate">{a.nom}</div>
-                  {suivant ? (
-                    <div className="mt-1">
-                      {/* Programme (identité explicite de l'enquête) puis réf + date */}
-                      <div className="text-sm text-encre/85 leading-snug truncate">
-                        {libelleProgramme.get(suivant.programmeId) ?? suivant.programmeId}
+                <div key={a.id} className="relative overflow-hidden rounded-xl2 border border-brume bg-surface px-4 py-3">
+                  {/* Indication « sous 15 j » : liseré latéral coloré, sans mise en avant */}
+                  {suivant && <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: couleur }} />}
+                  <div className={suivant ? 'pl-1.5' : ''}>
+                    <div className="surtitre text-[10px] truncate">{a.disciplines.join(' · ')}</div>
+                    <div className="font-title font-bold text-marine text-base truncate">{a.nom}</div>
+                    {suivant ? (
+                      <div className="mt-1">
+                        {/* Programme (identité explicite de l'enquête) puis réf + date */}
+                        <div className="text-sm text-encre/85 leading-snug truncate">
+                          {libelleProgramme.get(suivant.programmeId) ?? suivant.programmeId}
+                        </div>
+                        <div className="text-[11px] text-encre/55 truncate">
+                          {suivant.envoiRef && (
+                            <>
+                              <span className="font-mono font-semibold text-marine">{suivant.envoiRef}</span> ·{' '}
+                            </>
+                          )}
+                          {fmtDate(suivant.dateEcheanceRealisation)} ·{' '}
+                          <span className="font-semibold" style={{ color: couleur }}>
+                            {libelleJours(suivant)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-encre/55 truncate">
-                        {suivant.envoiRef && (
-                          <>
-                            <span className="font-mono font-semibold text-marine">{suivant.envoiRef}</span> ·{' '}
-                          </>
-                        )}
-                        {fmtDate(suivant.dateEcheanceRealisation)} · {libelleJours(suivant)}
+                    ) : (
+                      <div className="text-xs mt-1 flex items-center gap-1.5" style={{ color: COULEUR_ALERTE.a_jour }}>
+                        <span className="grid place-items-center h-4 w-4 rounded-full text-white text-[9px]" style={{ backgroundColor: COULEUR_ALERTE.a_jour }}>
+                          ✓
+                        </span>
+                        À jour
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-xs mt-1 flex items-center gap-1.5" style={{ color: COULEUR_ALERTE.a_jour }}>
-                      <span className="grid place-items-center h-4 w-4 rounded-full text-white text-[9px]" style={{ backgroundColor: COULEUR_ALERTE.a_jour }}>
-                        ✓
-                      </span>
-                      À jour
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })}
