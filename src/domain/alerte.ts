@@ -7,7 +7,7 @@
 import type { Enquete } from './types';
 import { avantRealise } from './urgence';
 import { joursRestants, aujourdhui } from './dates';
-import { SEUIL_ALERTE_3J, SEUIL_ALERTE_7J } from './config/seuils';
+import { SEUIL_ALERTE_3J, SEUIL_ALERTE_7J, FENETRE_AFFICHAGE_JOURS } from './config/seuils';
 
 export type NiveauAlerte = 'aujourdhui' | 'j3' | 'j7' | 'a_jour';
 
@@ -23,12 +23,13 @@ export const RANG_ALERTE: Record<NiveauAlerte, number> = {
  * Une enquête est-elle affichable sur le mur ?
  *  - affectée à un automate,
  *  - pas encore réalisée (statut avant « réalisé »),
- *  - échéance NON dépassée (joursRestants >= 0).
+ *  - échéance dans la fenêtre [0, FENETRE_AFFICHAGE_JOURS] : ni dépassée, ni
+ *    trop lointaine (au-delà de 15 j, inutile de l'afficher).
  */
 export function estAffichable(e: Enquete, ref: Date = aujourdhui()): boolean {
   if (!e.affectee || !avantRealise(e.statut)) return false;
   const jr = joursRestants(e.dateEcheanceRealisation, ref);
-  return jr !== null && jr >= 0;
+  return jr !== null && jr >= 0 && jr <= FENETRE_AFFICHAGE_JOURS;
 }
 
 /** Niveau d'alerte d'une enquête, ou null si non affichable (dépassée/réalisée). */

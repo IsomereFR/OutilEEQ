@@ -116,9 +116,19 @@ export function MurAutomates({ enquetes }: { enquetes: Enquete[] }) {
                   <div className="surtitre text-[10px] truncate">{a.disciplines.join(' · ')}</div>
                   <div className="font-title font-bold text-marine text-base truncate">{a.nom}</div>
                   {suivant ? (
-                    <div className="text-xs text-encre/60 mt-1 truncate">
-                      <span className="font-mono font-semibold text-marine">{suivant.envoiRef}</span> ·{' '}
-                      {fmtDate(suivant.dateEcheanceRealisation)} · {libelleJours(suivant)}
+                    <div className="mt-1">
+                      {/* Programme (identité explicite de l'enquête) puis réf + date */}
+                      <div className="text-sm text-encre/85 leading-snug truncate">
+                        {libelleProgramme.get(suivant.programmeId) ?? suivant.programmeId}
+                      </div>
+                      <div className="text-[11px] text-encre/55 truncate">
+                        {suivant.envoiRef && (
+                          <>
+                            <span className="font-mono font-semibold text-marine">{suivant.envoiRef}</span> ·{' '}
+                          </>
+                        )}
+                        {fmtDate(suivant.dateEcheanceRealisation)} · {libelleJours(suivant)}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-xs mt-1 flex items-center gap-1.5" style={{ color: COULEUR_ALERTE.a_jour }}>
