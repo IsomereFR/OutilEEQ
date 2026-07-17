@@ -38,3 +38,27 @@ export const LIBELLE_URGENCE: Record<string, string> = {
   a_surveiller: 'À surveiller',
   a_venir: 'À venir',
 };
+
+/** Mur d'affichage : 4 niveaux d'alerte (rampe calme → maximale). */
+export const COULEUR_ALERTE: Record<string, string> = {
+  a_jour: '#6F9080', // sauge, calme
+  j7: '#D7A24A', // ambre
+  j3: '#C0623F', // terracotta
+  aujourdhui: '#8F2D16', // brique profonde, alerte maximale
+};
+
+/** Libellés des niveaux d'alerte du mur. */
+export const LIBELLE_ALERTE: Record<string, string> = {
+  a_jour: 'À jour',
+  j7: 'Sous 7 jours',
+  j3: 'Sous 3 jours',
+  aujourdhui: "Aujourd'hui",
+};
+
+/** Libellés courts (chips compacts). */
+export const LIBELLE_ALERTE_COURT: Record<string, string> = {
+  a_jour: 'À jour',
+  j7: '7 j',
+  j3: '3 j',
+  aujourdhui: "Auj.",
+};

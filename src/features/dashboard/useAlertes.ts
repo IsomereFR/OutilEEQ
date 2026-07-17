@@ -1,18 +1,29 @@
 // ============================================================================
-//  Hook d'actualisation des alertes du dashboard.
-//  Les niveaux d'urgence dérivent de la date du jour : sans interaction, un
-//  compteur « J-7 » deviendrait « en retard » sans que l'écran ne bouge. Ce
-//  hook force un re-render à l'ouverture puis toutes les INTERVALLE_RECALCUL_MS.
+//  Hook d'actualisation du mur d'affichage.
+//  Les niveaux d'alerte dérivent de la date du jour : sans interaction, l'écran
+//  doit se recalculer seul. Ce hook force un re-render toutes les 24 h (cf.
+//  INTERVALLE_RECALCUL_MS) ET au retour de focus / de visibilité de l'onglet
+//  (utile pour un poste d'affichage laissé ouvert plusieurs jours).
 // ============================================================================
 import { useEffect, useState } from 'react';
 import { INTERVALLE_RECALCUL_MS } from '../../domain/config/seuils';
 
-/** Recalcul périodique (re-render) des statuts d'urgence. Ne renvoie rien. */
+/** Recalcul périodique (re-render) des niveaux d'alerte. Ne renvoie rien. */
 export function useAlertes(): void {
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), INTERVALLE_RECALCUL_MS);
-    return () => clearInterval(id);
+    const rafraichir = () => setTick((t) => t + 1);
+    const id = setInterval(rafraichir, INTERVALLE_RECALCUL_MS);
+    const surVisibilite = () => {
+      if (document.visibilityState === 'visible') rafraichir();
+    };
+    window.addEventListener('focus', rafraichir);
+    document.addEventListener('visibilitychange', surVisibilite);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', rafraichir);
+      document.removeEventListener('visibilitychange', surVisibilite);
+    };
   }, []);
 }
