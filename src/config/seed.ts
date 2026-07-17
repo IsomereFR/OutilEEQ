@@ -13,7 +13,7 @@ import { isoDecale } from '../domain/dates';
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -31,8 +31,11 @@ const sites: Site[] = [
   // À COMPLÉTER : 9 sites au total.
 ];
 
-// --- Parc d'automates réel, par discipline (rattachement site : À COMPLÉTER) --
-// TLA 1 et TLA 2 couvrent DEUX disciplines (HbA1C et Électrophorèse).
+// --- Parc d'automates : UN automate par famille analytique (simplification
+//     d'amorce). Le dédoublonnage (CH1..CH4, IM1..IM4, etc.) et le partage
+//     multi-discipline pourront être ajoutés ultérieurement. Rattachement site :
+//     À COMPLÉTER (les 9 sites). Le modèle Automate.disciplines[] reste prêt à
+//     accueillir un automate couvrant plusieurs familles.
 const A = (id: string, nom: string, disciplines: string[], modele = ''): Automate => ({
   id,
   nom,
@@ -43,33 +46,13 @@ const A = (id: string, nom: string, disciplines: string[], modele = ''): Automat
 });
 
 const automates: Automate[] = [
-  // Biochimie
-  A('a-ch1', 'Atellica CH1', ['Biochimie'], 'Siemens Atellica CH'),
-  A('a-ch2', 'Atellica CH2', ['Biochimie'], 'Siemens Atellica CH'),
-  A('a-ch3', 'Atellica CH3', ['Biochimie'], 'Siemens Atellica CH'),
-  A('a-ch4', 'Atellica CH4', ['Biochimie'], 'Siemens Atellica CH'),
-  // Immunologie
-  A('a-im1', 'Atellica IM1', ['Immunologie'], 'Siemens Atellica IM'),
-  A('a-im2', 'Atellica IM2', ['Immunologie'], 'Siemens Atellica IM'),
-  A('a-im3', 'Atellica IM3', ['Immunologie'], 'Siemens Atellica IM'),
-  A('a-im4', 'Atellica IM4', ['Immunologie'], 'Siemens Atellica IM'),
-  // Immuno-enzymologie
+  A('a-ch', 'Atellica CH', ['Biochimie'], 'Siemens Atellica CH'),
+  A('a-im', 'Atellica IM', ['Immunologie'], 'Siemens Atellica IM'),
   A('a-liaisonxl', 'Liaison XL', ['Immuno-enzymologie'], 'DiaSorin Liaison XL'),
-  // Hémostase
-  A('a-cs1', 'CS-5100 1', ['Hémostase'], 'Sysmex CS-5100'),
-  A('a-cs2', 'CS-5100 2', ['Hémostase'], 'Sysmex CS-5100'),
-  // Hématologie
-  A('a-xn1', 'XN1', ['Hématologie'], 'Sysmex XN'),
-  A('a-xn2', 'XN2', ['Hématologie'], 'Sysmex XN'),
-  A('a-xn3', 'XN3', ['Hématologie'], 'Sysmex XN'),
-  A('a-xn4', 'XN4', ['Hématologie'], 'Sysmex XN'),
-  // Immunohématologie
-  A('a-vision1', 'Vision 1', ['Immunohématologie'], 'Ortho VISION'),
-  A('a-vision2', 'Vision 2', ['Immunohématologie'], 'Ortho VISION'),
-  // HbA1C + Électrophorèse (automates partagés)
-  A('a-tla1', 'TLA 1', ['HbA1C', 'Électrophorèse des protéines']),
-  A('a-tla2', 'TLA 2', ['HbA1C', 'Électrophorèse des protéines']),
-  // Électrophorèse des protéines
+  A('a-cs', 'CS-5100', ['Hémostase'], 'Sysmex CS-5100'),
+  A('a-xn', 'XN', ['Hématologie'], 'Sysmex XN'),
+  A('a-vision', 'Vision', ['Immunohématologie'], 'Ortho VISION'),
+  A('a-tla', 'TLA', ['HbA1C'], 'HbA1C'),
   A('a-octa', 'Octa', ['Électrophorèse des protéines'], 'Sebia'),
 ];
 
@@ -78,32 +61,32 @@ const programmes: Programme[] = [
   {
     id: 'p-bioch', fournisseurId: 'f-probioq', codeProgramme: 'BIOCH', libelle: 'Biochimie générale',
     discipline: 'Biochimie', parametres: ['Glucose', 'Créatinine', 'Na', 'K'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-ch1', 'a-ch2', 'a-ch3', 'a-ch4'],
+    automatesParDefaut: ['a-ch'],
   },
   {
     id: 'p-immuno', fournisseurId: 'f-probioq', codeProgramme: 'IMMUNO', libelle: 'Immuno-analyse',
     discipline: 'Immunologie', parametres: ['TSH', 'T4L', 'Ferritine'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-im1', 'a-im2', 'a-im3', 'a-im4'],
+    automatesParDefaut: ['a-im'],
   },
   {
     id: 'p-hemostase', fournisseurId: 'f-probioq', codeProgramme: 'HEMOS', libelle: 'Hémostase',
     discipline: 'Hémostase', parametres: ['TP', 'TCA', 'Fibrinogène'], frequence: 'Trimestrielle',
-    automatesParDefaut: ['a-cs1', 'a-cs2'],
+    automatesParDefaut: ['a-cs'],
   },
   {
     id: 'p-hemato', fournisseurId: 'f-asqualab', codeProgramme: 'HEMATO', libelle: 'Hématologie cellulaire',
     discipline: 'Hématologie', parametres: ['NFS', 'Plaquettes'], frequence: 'Trimestrielle',
-    automatesParDefaut: ['a-xn1', 'a-xn2', 'a-xn3', 'a-xn4'],
+    automatesParDefaut: ['a-xn'],
   },
   {
     id: 'p-ih', fournisseurId: 'f-bioprospective', codeProgramme: 'IH', libelle: 'Immuno-hématologie',
     discipline: 'Immunohématologie', parametres: ['Groupe ABO', 'RAI'], frequence: '3 / an',
-    automatesParDefaut: ['a-vision1', 'a-vision2'],
+    automatesParDefaut: ['a-vision'],
   },
   {
     id: 'p-hba1c', fournisseurId: 'f-riqas', codeProgramme: 'HBA1C', libelle: 'HbA1C',
     discipline: 'HbA1C', parametres: ['HbA1C'], frequence: 'Mensuelle',
-    automatesParDefaut: ['a-tla1', 'a-tla2'],
+    automatesParDefaut: ['a-tla'],
   },
   {
     id: 'p-eph', fournisseurId: 'f-asqualab', codeProgramme: 'EPH', libelle: 'Électrophorèse des protéines',
@@ -131,24 +114,24 @@ const mkEnq = (
 });
 
 const enquetes: Enquete[] = [
-  // En retard (Hématologie, 2 automates)
+  // En retard (Hématologie)
   mkEnq({ id: 'e-retard', programmeId: 'p-hemato', fournisseurId: 'f-asqualab', envoiRef: 'Envoi 1/4',
-    dateEcheanceRealisation: isoDecale(-4), automateIds: ['a-xn1', 'a-xn2'], statut: 'a_realiser' }),
-  // Urgent J-7 (Biochimie, 4 automates)
+    dateEcheanceRealisation: isoDecale(-4), automateIds: ['a-xn'], statut: 'a_realiser' }),
+  // Urgent J-7 (Biochimie)
   mkEnq({ id: 'e-urgent', programmeId: 'p-bioch', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-A',
-    dateEcheanceRealisation: isoDecale(3), automateIds: ['a-ch1', 'a-ch2', 'a-ch3', 'a-ch4'], statut: 'a_realiser' }),
-  // À surveiller (Immunologie, 2 automates)
+    dateEcheanceRealisation: isoDecale(3), automateIds: ['a-ch'], statut: 'a_realiser' }),
+  // À surveiller (Immunologie)
   mkEnq({ id: 'e-surv', programmeId: 'p-immuno', fournisseurId: 'f-probioq', envoiRef: 'Envoi 5/12',
-    dateEcheanceRealisation: isoDecale(11), automateIds: ['a-im1', 'a-im2'], statut: 'a_venir' }),
-  // À venir (Hémostase, 2 automates)
+    dateEcheanceRealisation: isoDecale(11), automateIds: ['a-im'], statut: 'a_venir' }),
+  // À venir (Hémostase)
   mkEnq({ id: 'e-venir', programmeId: 'p-hemostase', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-2',
-    dateEcheanceRealisation: isoDecale(35), automateIds: ['a-cs1', 'a-cs2'], statut: 'a_venir' }),
+    dateEcheanceRealisation: isoDecale(35), automateIds: ['a-cs'], statut: 'a_venir' }),
   // Non affectée (inbox « À affecter »)
   mkEnq({ id: 'e-inbox', programmeId: 'p-hba1c', fournisseurId: 'f-riqas', envoiRef: 'Envoi 7/12',
     dateEcheanceRealisation: isoDecale(9), automateIds: [], affectee: false, statut: 'a_venir', source: 'excel' }),
   // Réalisée ce mois (Immunohématologie)
   mkEnq({ id: 'e-realisee', programmeId: 'p-ih', fournisseurId: 'f-bioprospective', envoiRef: 'Envoi 1/3',
-    dateEcheanceRealisation: isoDecale(-6), automateIds: ['a-vision1'], statut: 'realise' }),
+    dateEcheanceRealisation: isoDecale(-6), automateIds: ['a-vision'], statut: 'realise' }),
 ];
 
 /** Jeu de données d'amorce complet. */
