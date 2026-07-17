@@ -1,6 +1,131 @@
-# OutilEEQ
+# Suivi du planning EEQ · BIOXA
 
-Dépôt réinitialisé — en attente d'un nouveau cahier des charges (PRD) et des
-instructions associées.
+Application web **mono-page, 100 % client et hors-ligne** pour le suivi du
+planning des enquêtes d'Évaluation Externe de la Qualité (EEQ) du laboratoire
+BIOXA. Aucune brique IA dans ce socle : toute la logique fonctionne sans réseau.
 
-L'historique des versions précédentes reste disponible dans l'historique Git.
+Code projet : **EEQ-PLANNING** · Cadre : ISO 15189:2022 §7.3.7.3, §7.6, COFRAC.
+
+## Objet
+
+Voir en un coup d'œil les enquêtes EEQ à réaliser, affecter chaque enquête à un
+ou plusieurs automates, et recevoir une alerte interne quand une échéance tombe
+dans les 7 jours. L'outil pilote le **planning de réalisation** ; il ne saisit
+ni n'évalue les résultats (qui restent sur les portails fournisseurs et Kalilab).
+
+## Stack
+
+- React + Vite + TypeScript + Tailwind CSS
+- Persistance locale : IndexedDB via `idb-keyval`
+- Parsing Excel/CSV : SheetJS (`xlsx`), 100 % côté client
+- Aucun backend, aucune dépendance réseau au runtime
+
+> Note : les polices (Manrope, Inter) sont **embarquées localement** via
+> `@fontsource` plutôt que chargées depuis Google Fonts, afin de respecter la
+> contrainte « aucune dépendance réseau au runtime » (PRD §9, défendabilité
+> COFRAC §7.6). Le rendu typographique est identique.
+
+## Prérequis
+
+- Node.js ≥ 18 (testé avec Node 22) et npm.
+
+## Lancement
+
+```bash
+npm install
+npm run dev          # http://localhost:5173
+```
+
+Au premier démarrage, un jeu de démonstration est chargé (enquêtes couvrant les
+quatre niveaux d'urgence + une enquête dans l'inbox « À affecter »).
+
+## Tests et vérification
+
+```bash
+npm test             # tests unitaires (domaine : urgence, dédup, tri, dates)
+npm run typecheck    # TypeScript strict, 0 erreur
+```
+
+## Build statique (déploiement local, sans hébergement)
+
+```bash
+npm run build        # génère dist/
+npm run preview      # sert dist/ localement pour vérification
+```
+
+Le build utilise `base: './'` : le dossier `dist/` est autonome et peut être
+copié sur le poste ou servi par n'importe quel serveur statique, sans exposition
+réseau.
+
+## Où compléter les référentiels
+
+Tout est regroupé dans **`src/config/seed.ts`** (marqué « À COMPLÉTER ») :
+
+- **Fournisseurs** EEQ réels (abonnements BIOXA).
+- **Sites** : les 9 sites du réseau avec leurs codes.
+- **Automates** et leur rattachement aux sites / disciplines.
+- **Programmes** (code, libellé, paramètres, automates par défaut).
+
+Les **seuils d'alerte** (7 j urgent, 15 j à surveiller) sont dans
+**`src/domain/config/seuils.ts`** et sont modifiables.
+
+Après modification du seed : les données déjà présentes en IndexedDB ne sont pas
+écrasées. Pour repartir du seed, vider le stockage du site (outils navigateur)
+ou importer un export JSON de référence.
+
+## Sauvegarde et portabilité
+
+- **Exporter** : bouton « Exporter » → instantané JSON complet horodaté
+  (référentiels, enquêtes, profils d'import, captures encodées en base64).
+- **Importer JSON** : au choix, **remplacement** total ou **fusion** non
+  destructive.
+
+## Import d'un planning (Excel / CSV)
+
+Bouton « Importer un planning » → dépôt du fichier, détection de la ligne
+d'en-tête, mapping des colonnes vers les champs d'enquête. Le mapping est
+**mémorisé par fournisseur** (profil d'import) : au prochain import du même
+fournisseur, il est pré-rempli automatiquement. Les candidats passent par la
+**déduplication** puis l'écran de **réconciliation** (affectation aux automates)
+avant d'entrer dans le planning. Une nouvelle enquête n'entre jamais directement
+dans le planning : elle transite par l'inbox « À affecter ».
+
+## Brancher le module capture (prompt 02)
+
+Le dossier **`src/import/vision/`** est **réservé et non implémenté**. Il expose
+une seule interface :
+
+```ts
+parseCaptureToEnquetes(image: Blob): Promise<CandidatEnquete[]>
+```
+
+qui lève aujourd'hui `"Module capture non installé"`. Pour l'activer (prompt 02),
+implémenter cette fonction (appel de vision) et placer la clé API et le
+paramétrage dans un fichier de configuration **dédié et séparé** du reste du
+code. Le reste de l'application ignore comment les candidats sont produits : ils
+rejoignent le même écran de réconciliation que l'import Excel, avec **contrôle
+humain obligatoire** (l'IA propose, l'humain valide).
+
+## Logo
+
+Déposer le fichier officiel **`logo_BIOXA_detoure_transparent.png`** dans
+`src/theme/logo/` puis activer l'import dans `src/ui/EnTete.tsx` (une ligne
+commentée). Le logo n'est jamais redessiné. En son absence, un libellé texte de
+repli « BIOXA » est affiché.
+
+## Arborescence
+
+```
+src/
+  domain/        types + règles métier pures et testées (urgence, dédup, tri, vues)
+  store/         accès IndexedDB (idb-keyval) + export/import JSON + store zustand
+  import/
+    excel/       parsing SheetJS + mapping + profils
+    vision/      RÉSERVÉ (prompt 02) : interface non implémentée
+  features/
+    dashboard/   page unique (bandeau, indicateurs, frise, liste priorisée)
+    reconcile/   import + réconciliation + inbox d'affectation
+  ui/            composants réutilisables (cartes, pastilles, KPI, filtres)
+  theme/         tokens de la direction artistique BIOXA
+  config/        seed (référentiels d'amorce, à compléter)
+```
