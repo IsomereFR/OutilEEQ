@@ -19,13 +19,14 @@ export interface Site {
   code: string;
 }
 
-/** Automate / analyseur rattaché à un site et une discipline. */
+/** Automate / analyseur. Peut couvrir plusieurs disciplines (ex. TLA). */
 export interface Automate {
   id: string;
   nom: string;
   modele: string;
   siteId: string;
-  discipline: string;
+  /** 1..n disciplines couvertes par l'automate. */
+  disciplines: string[];
   actif: boolean;
 }
 
@@ -132,4 +133,6 @@ export interface AppData {
   profils: ProfilImport[];
   piecesJointes: PieceJointe[];
   journal: JournalImport[];
+  /** Version du jeu d'amorce ayant produit les référentiels (cf. seed). */
+  seedVersion?: number;
 }

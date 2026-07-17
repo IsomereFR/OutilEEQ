@@ -12,7 +12,7 @@ import type {
   PieceJointe,
 } from '../domain/types';
 import { chargerAppData, sauverAppData, APPDATA_VIDE } from './db';
-import { seed } from '../config/seed';
+import { seed, SEED_VERSION } from '../config/seed';
 import { fusionner, type ModeImport } from './backup';
 
 let SEQ = 0;
@@ -60,6 +60,7 @@ function extraireAppData(s: StoreState): AppData {
     profils: s.profils,
     piecesJointes: s.piecesJointes,
     journal: s.journal,
+    seedVersion: s.seedVersion,
   };
 }
 
@@ -123,7 +124,9 @@ export const useStore = create<StoreState>((set, get) => ({
 export async function initStore(): Promise<void> {
   try {
     const data = await chargerAppData();
-    if (data) {
+    // Régénère l'amorce si absente OU si sa version est antérieure (phase de
+    // démonstration : les référentiels évoluent et doivent être appliqués).
+    if (data && (data.seedVersion ?? 0) >= SEED_VERSION) {
       useStore.setState({ ...data, ready: true, error: null });
     } else {
       const s = seed();
