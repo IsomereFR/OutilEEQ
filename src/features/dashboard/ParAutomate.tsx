@@ -53,76 +53,65 @@ export function ParAutomate({
     [enquetes],
   );
 
-  // Regroupe les automates actifs par discipline (multi-discipline pris en compte).
-  const groupes = useMemo(() => {
-    const parDisc = new Map<string, typeof automates>();
-    for (const a of automates) {
-      if (!a.actif) continue;
-      for (const d of a.disciplines) {
-        const liste = parDisc.get(d);
-        if (liste) liste.push(a);
-        else parDisc.set(d, [a]);
-      }
-    }
+  // Liste plate { discipline, automate } ordonnée par discipline (un automate
+  // multi-discipline apparaît une fois par discipline couverte).
+  const entrees = useMemo(() => {
     const ordre = (d: string) => {
       const i = ORDRE_DISCIPLINES.indexOf(d);
       return i === -1 ? 999 : i;
     };
-    return [...parDisc.entries()].sort((x, y) => ordre(x[0]) - ordre(y[0]));
+    const out: { discipline: string; automate: (typeof automates)[number] }[] = [];
+    for (const a of automates) {
+      if (!a.actif) continue;
+      for (const d of a.disciplines) out.push({ discipline: d, automate: a });
+    }
+    return out.sort((x, y) => ordre(x.discipline) - ordre(y.discipline) || x.automate.nom.localeCompare(y.automate.nom));
   }, [automates]);
 
   return (
     <Carte>
       <CarteTitre extra={`${totalARealiser} à réaliser`}>À réaliser par automate</CarteTitre>
-      <div className="p-4 space-y-4">
-        {groupes.map(([discipline, autos]) => (
-          <div key={discipline}>
-            <div className="surtitre mb-2">{discipline}</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-              {autos.map((a) => {
-                const liste = parAutomate.get(a.id) ?? [];
-                const pire: NiveauUrgence | null = liste.length
-                  ? liste
-                      .map((e) => niveauUrgence(e))
-                      .reduce((p, n) => (RANG_URGENCE[n] < RANG_URGENCE[p] ? n : p))
-                  : null;
-                const couleur = pire ? COULEUR_URGENCE[pire] : '#D5DBDF';
-                const actif = automateActif === a.id;
-                return (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => onChoisirAutomate(a.id)}
-                    className={
-                      'relative overflow-hidden text-left rounded-xl2 border p-3 transition ' +
-                      (actif ? 'border-marine ring-1 ring-marine/40 ' : 'border-brume ') +
-                      (liste.length ? 'hover:-translate-y-0.5 hover:shadow-carte' : 'hover:border-marine/30')
-                    }
-                    style={{ background: liste.length ? '#FFFFFF' : 'rgba(213,219,223,.18)' }}
-                    aria-label={`${a.nom} · ${liste.length} à réaliser`}
-                  >
-                    <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: couleur }} />
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="font-title font-bold text-sm text-marine truncate">{a.nom}</span>
-                      <span className="font-title font-extrabold text-xl text-marine tabular-nums">
-                        {liste.length || ''}
-                      </span>
-                    </div>
-                    <div className="mt-1 text-[11px] leading-tight">
-                      {pire ? (
-                        <span style={{ color: couleur }} className="font-medium">
-                          {LIBELLE_URGENCE[pire]}
-                        </span>
-                      ) : (
-                        <span className="text-encre/40">À jour</span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+        {entrees.map(({ discipline, automate: a }) => {
+          const liste = parAutomate.get(a.id) ?? [];
+          const pire: NiveauUrgence | null = liste.length
+            ? liste.map((e) => niveauUrgence(e)).reduce((p, n) => (RANG_URGENCE[n] < RANG_URGENCE[p] ? n : p))
+            : null;
+          const couleur = pire ? COULEUR_URGENCE[pire] : '#D5DBDF';
+          const actif = automateActif === a.id;
+          return (
+            <button
+              key={`${discipline}:${a.id}`}
+              type="button"
+              onClick={() => onChoisirAutomate(a.id)}
+              className={
+                'relative overflow-hidden text-left rounded-xl2 border p-3 transition ' +
+                (actif ? 'border-marine ring-1 ring-marine/40 ' : 'border-brume ') +
+                (liste.length ? 'hover:-translate-y-0.5 hover:shadow-carte' : 'hover:border-marine/30')
+              }
+              style={{ background: liste.length ? '#FFFFFF' : 'rgba(213,219,223,.18)' }}
+              aria-label={`${a.nom} · ${discipline} · ${liste.length} à réaliser`}
+            >
+              <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: couleur }} />
+              <div className="surtitre text-[9px] truncate">{discipline}</div>
+              <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                <span className="font-title font-bold text-sm text-marine truncate">{a.nom}</span>
+                <span className="font-title font-extrabold text-xl text-marine tabular-nums">
+                  {liste.length || ''}
+                </span>
+              </div>
+              <div className="mt-1 text-[11px] leading-tight">
+                {pire ? (
+                  <span style={{ color: couleur }} className="font-medium">
+                    {LIBELLE_URGENCE[pire]}
+                  </span>
+                ) : (
+                  <span className="text-encre/40">À jour</span>
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </Carte>
   );
