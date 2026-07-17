@@ -9,7 +9,6 @@ import { Fragment, useMemo, useState } from 'react';
 import type { Enquete, Statut } from '../../domain/types';
 import { STATUTS } from '../../domain/types';
 import { useStore } from '../../store/useStore';
-import { useNav } from '../../store/useNav';
 import { trierParPriorite } from '../../domain/tri';
 import { niveauUrgence } from '../../domain/urgence';
 import { joursRestants, fmtDate } from '../../domain/dates';
@@ -40,7 +39,6 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
   const sites = useStore((s) => s.sites);
   const setStatut = useStore((s) => s.setStatut);
   const reaffecter = useStore((s) => s.reaffecter);
-  const aller = useNav((s) => s.aller);
 
   const [ouvert, setOuvert] = useState<string | null>(null); // id de la ligne dépliée
 
@@ -145,30 +143,18 @@ export function ListePriorisee({ enquetes }: { enquetes: Enquete[] }) {
                         </select>
                       </td>
                       <td className={`${td} whitespace-nowrap`}>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setOuvert(deplie ? null : e.id)}
-                            className={
-                              'rounded-lg border text-xs px-2 py-1 transition ' +
-                              (deplie
-                                ? 'border-terracotta text-terracotta'
-                                : 'border-brume text-encre/70 hover:border-marine/40')
-                            }
-                          >
-                            Réaffecter
-                          </button>
-                          {e.sourceRef && (
-                            <button
-                              type="button"
-                              onClick={() => aller('reconcile')}
-                              className="rounded-lg border border-brume text-xs px-2 py-1 text-encre/70 hover:border-marine/40"
-                              title="Voir la source d'origine"
-                            >
-                              Source
-                            </button>
-                          )}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setOuvert(deplie ? null : e.id)}
+                          className={
+                            'rounded-lg border text-xs px-2 py-1 transition ' +
+                            (deplie
+                              ? 'border-terracotta text-terracotta'
+                              : 'border-brume text-encre/70 hover:border-marine/40')
+                          }
+                        >
+                          Réaffecter
+                        </button>
                       </td>
                     </tr>
                     {deplie && (

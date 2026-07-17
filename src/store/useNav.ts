@@ -1,8 +1,9 @@
-// Navigation minimale : le dashboard est la seule page d'usage courant ;
-// la réconciliation/import est un module ouvert ponctuellement (cf. PRD F3/F4).
+// Navigation minimale : le mur d'affichage (dashboard) est la page publique ;
+// l'espace administrateur (import, affectation, sauvegarde) est séparé et n'est
+// pas visible depuis le mur (cf. PRD : outil de pilotage mono-poste).
 import { create } from 'zustand';
 
-export type Vue = 'dashboard' | 'reconcile';
+export type Vue = 'dashboard' | 'admin';
 
 interface NavState {
   vue: Vue;

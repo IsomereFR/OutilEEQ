@@ -1,73 +1,40 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useStore, initStore } from './store/useStore';
 import { useNav } from './store/useNav';
 import { EnTete } from './ui/EnTete';
-import { exporterJSON, lireImportJSON } from './store/backup';
 import { Dashboard } from './features/dashboard/Dashboard';
-import { Reconcile } from './features/reconcile/Reconcile';
+import { AdminView } from './features/admin/AdminView';
 
 export function App() {
   const ready = useStore((s) => s.ready);
   const error = useStore((s) => s.error);
-  const snapshot = useStore((s) => s.snapshot);
-  const appliquerImportJSON = useStore((s) => s.appliquerImportJSON);
   const vue = useNav((s) => s.vue);
   const aller = useNav((s) => s.aller);
-  const jsonRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void initStore();
   }, []);
 
-  const importerJSON = (file: File) => {
-    lireImportJSON(file)
-      .then((data) => {
-        const remplacer = window.confirm(
-          'Importer en REMPLAÇANT toutes les données actuelles ?\n\n' +
-            'OK = remplacement total · Annuler = fusion (ajout non destructif)',
-        );
-        appliquerImportJSON(data, remplacer ? 'remplacement' : 'fusion');
-        aller('dashboard');
-      })
-      .catch((e) => alert(e.message));
-  };
-
-  const actions = (
-    <>
+  // Accès discret à l'espace administrateur (non mis en avant sur le mur).
+  const actions =
+    vue === 'dashboard' ? (
       <button
         type="button"
-        onClick={() => aller(vue === 'reconcile' ? 'dashboard' : 'reconcile')}
-        className="rounded-lg bg-terracotta text-white text-sm font-medium px-3 py-2 hover:brightness-105"
+        onClick={() => aller('admin')}
+        className="text-xs text-encre/45 hover:text-marine border border-brume rounded-lg px-2.5 py-1.5"
+        title="Espace administrateur"
       >
-        {vue === 'reconcile' ? 'Retour au dashboard' : 'Importer un planning'}
+        Admin
       </button>
+    ) : (
       <button
         type="button"
-        onClick={() => exporterJSON(snapshot())}
-        className="rounded-lg border border-brume bg-surface text-sm px-3 py-2 hover:border-marine/40"
+        onClick={() => aller('dashboard')}
+        className="rounded-lg bg-marine text-white text-sm font-medium px-3 py-2 hover:brightness-110"
       >
-        Exporter
+        ← Retour à l'affichage
       </button>
-      <button
-        type="button"
-        onClick={() => jsonRef.current?.click()}
-        className="rounded-lg border border-brume bg-surface text-sm px-3 py-2 hover:border-marine/40"
-      >
-        Importer JSON
-      </button>
-      <input
-        ref={jsonRef}
-        type="file"
-        accept="application/json"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) importerJSON(f);
-          e.target.value = '';
-        }}
-      />
-    </>
-  );
+    );
 
   return (
     <div className="min-h-full">
@@ -82,8 +49,8 @@ export function App() {
       <main className="max-w-6xl mx-auto px-6 py-6">
         {!ready ? (
           <div className="text-center text-encre/50 py-24">Chargement des données locales</div>
-        ) : vue === 'reconcile' ? (
-          <Reconcile />
+        ) : vue === 'admin' ? (
+          <AdminView />
         ) : (
           <Dashboard />
         )}
