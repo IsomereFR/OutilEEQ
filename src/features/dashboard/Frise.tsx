@@ -24,11 +24,6 @@ import { IconFrise, IconCalendrier } from '../../ui/icones';
 type ModeFrise = 'frise' | 'calendrier';
 const FENETRE = FENETRE_FRISE_JOURS;
 
-/** Convertit un nombre de jours restants (0..FENETRE) en position horizontale %. */
-function xPct(jours: number): number {
-  return 2 + (Math.max(0, Math.min(FENETRE, jours)) / FENETRE) * 96;
-}
-
 export function Frise({ enquetes }: { enquetes: Enquete[] }) {
   const [mode, setMode] = useState<ModeFrise>('frise');
   const fournisseurs = useStore((s) => s.fournisseurs);
@@ -82,7 +77,7 @@ export function Frise({ enquetes }: { enquetes: Enquete[] }) {
           Aucune enquête planifiée dans la fenêtre.
         </p>
       ) : mode === 'frise' ? (
-        <VueFrise enquetes={enquetes} infos={infos} />
+        <VueFrise enquetes={enquetes} />
       ) : (
         <VueCalendrier
           enquetes={enquetes}
@@ -94,205 +89,147 @@ export function Frise({ enquetes }: { enquetes: Enquete[] }) {
   );
 }
 
-interface InfoEnquete {
-  titre: string;
-  sous: string;
-  echeance: string;
-  niveau: NiveauUrgence;
-}
+// Ordre d'empilage des segments (du bas vers le haut) : le plus urgent en bas.
+const SEGMENTS: NiveauUrgence[] = ['urgent', 'a_surveiller', 'a_venir'];
+const NOMS_MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
-/** Vue principale : axe temporel continu + histogramme de charge. */
-function VueFrise({
-  enquetes,
-  infos,
-}: {
-  enquetes: Enquete[];
-  infos: (e: Enquete) => InfoEnquete;
-}) {
-  const [survol, setSurvol] = useState<string | null>(null);
+/**
+ * Vue principale : histogramme HEBDOMADAIRE empilé par urgence, rendu en SVG
+ * (positionnement exact, robuste à toute largeur). Colonne « Retard » à gauche,
+ * zones d'alerte ombrées, repère « aujourd'hui », axe des mois.
+ */
+function VueFrise({ enquetes }: { enquetes: Enquete[] }) {
   const ref = aujourdhui();
 
-  // Répartition retard / fenêtre.
-  const { pointsFenetre, retards, hauteur, maxLane } = useMemo(() => {
-    const dansFenetre: { e: Enquete; jr: number }[] = [];
-    const enRetard: Enquete[] = [];
-    for (const e of enquetes) {
-      const jr = joursRestants(e.dateEcheanceRealisation, ref);
-      if (jr === null) continue;
-      // Le couloir « en retard » suit la règle d'urgence (échue ET non réalisée),
-      // pas le simple signe des jours restants.
-      if (niveauUrgence(e, ref) === 'en_retard') enRetard.push(e);
-      else if (jr >= 0 && jr <= FENETRE) dansFenetre.push({ e, jr });
-    }
-    dansFenetre.sort((a, b) => a.jr - b.jr);
-
-    // Empilage en couloirs : évite le chevauchement horizontal (écart mini 3.2 %).
-    const MAX_LANE = 5;
-    const GAP = 3.2;
-    const dernierX: number[] = [];
-    const points = dansFenetre.map(({ e, jr }) => {
-      const x = xPct(jr);
-      let lane = 0;
-      while (lane < MAX_LANE && dernierX[lane] !== undefined && x - dernierX[lane] < GAP) lane += 1;
-      if (lane >= MAX_LANE) lane = MAX_LANE; // couloir de débordement
-      dernierX[lane] = x;
-      return { e, jr, x, lane };
-    });
-    const maxL = points.reduce((m, p) => Math.max(m, p.lane), 0);
-    const h = 34 + (maxL + 1) * 22 + 8;
-    return { pointsFenetre: points, retards: enRetard, hauteur: h, maxLane: maxL };
-  }, [enquetes, ref]);
-
-  // Bornes de mois dans la fenêtre (pour l'axe).
-  const mois = useMemo(() => {
-    const out: { x: number; label: string }[] = [];
-    const noms = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-    const d = new Date(ref);
-    d.setDate(1);
-    d.setMonth(d.getMonth() + 1); // premier changement de mois à venir
-    for (let k = 0; k < 4; k++) {
-      const jr = joursRestants(d.toISOString().slice(0, 10), ref);
-      if (jr !== null && jr >= 0 && jr <= FENETRE) out.push({ x: xPct(jr), label: `${noms[d.getMonth()]}` });
-      d.setMonth(d.getMonth() + 1);
-    }
-    return out;
-  }, [ref]);
-
-  // Histogramme de charge par semaine.
-  const semaines = useMemo(() => {
-    const sem = frisParSemaine(enquetes, ref);
-    const arr = sem
+  const modele = useMemo(() => {
+    // Colonnes = semaines de la fenêtre (espacement régulier, semaines vides incluses).
+    const semaines = frisParSemaine(enquetes, ref)
       .map((s) => {
-        const jr = joursRestants(s.debut, ref);
-        return { debut: s.debut, jr: jr ?? 0, count: s.enquetes.length };
+        const jr = joursRestants(s.debut, ref) ?? 0;
+        const compte: Record<NiveauUrgence, number> = { en_retard: 0, urgent: 0, a_surveiller: 0, a_venir: 0 };
+        for (const e of s.enquetes) compte[niveauUrgence(e, ref)] += 1;
+        const total = SEGMENTS.reduce((n, k) => n + compte[k], 0);
+        return { debut: s.debut, jr, compte, total, mois: new Date(s.debut).getMonth() };
       })
-      .filter((s) => s.jr <= FENETRE && s.jr + 6 >= 0);
-    const maxCount = Math.max(1, ...arr.map((s) => s.count));
-    return { arr, maxCount };
+      .filter((s) => s.jr >= -6 && s.jr <= FENETRE);
+
+    const retard = enquetes.filter((e) => niveauUrgence(e, ref) === 'en_retard').length;
+    const maxTotal = Math.max(1, retard, ...semaines.map((s) => s.total));
+    return { semaines, retard, maxTotal };
   }, [enquetes, ref]);
 
-  const laneY = (lane: number) => 30 + lane * 22;
-  const pointSurvole = pointsFenetre.find((p) => p.e.id === survol);
+  // Géométrie SVG.
+  const VBW = 1000;
+  const VBH = 210;
+  const L = 8;
+  const R = 8;
+  const T = 16; // espace pour les étiquettes de compte
+  const B = 40; // espace pour l'axe des mois
+  const baseline = VBH - B;
+  const plotH = baseline - T;
+
+  const offset = model_offset(modele.retard);
+  const nbCol = modele.semaines.length + offset;
+  const slotW = (VBW - L - R) / Math.max(1, nbCol);
+  const barW = Math.min(slotW * 0.6, 30);
+  const centre = (i: number) => L + slotW * (i + 0.5);
+  const hauteurBarre = (n: number) => (n / modele.maxTotal) * plotH;
+
+  // Position exacte du repère « aujourd'hui » dans la semaine courante.
+  const idxToday = modele.semaines.findIndex((s) => s.jr <= 0 && s.jr + 6 >= 0);
+  const xToday =
+    idxToday >= 0
+      ? centre(idxToday + offset) - slotW / 2 + (Math.min(6, -modele.semaines[idxToday].jr) / 7) * slotW
+      : centre(offset) - slotW / 2;
 
   return (
     <div className="p-4">
       {/* Légende */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-[11px] text-encre/60">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 text-[11px] text-encre/60">
         {(['en_retard', 'urgent', 'a_surveiller', 'a_venir'] as NiveauUrgence[]).map((n) => (
           <span key={n} className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COULEUR_URGENCE[n] }} />
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: COULEUR_URGENCE[n] }} />
             {LIBELLE_URGENCE[n]}
           </span>
         ))}
       </div>
 
-      <div className="flex gap-3">
-        {/* Couloir « en retard » à gauche */}
-        <div className="shrink-0 w-16 border-r border-brume pr-3 flex flex-col items-center">
-          <div className="text-[10px] font-title font-bold uppercase tracking-wide text-terracotta text-center leading-tight mb-2">
-            En retard
-          </div>
-          {retards.length === 0 ? (
-            <div className="text-[11px] text-encre/25 mt-2">·</div>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-1">
-              {retards.slice(0, 12).map((e) => (
-                <span
-                  key={e.id}
-                  title={`${infos(e).titre} · Échéance : ${infos(e).echeance}`}
-                  onMouseEnter={() => setSurvol(e.id)}
-                  onMouseLeave={() => setSurvol(null)}
-                  className="h-3 w-3 rounded-full ring-2 ring-surface cursor-pointer"
-                  style={{ backgroundColor: COULEUR_URGENCE.en_retard }}
-                />
-              ))}
-              {retards.length > 12 && (
-                <span className="text-[10px] text-terracotta font-medium">+{retards.length - 12}</span>
+      <svg viewBox={`0 0 ${VBW} ${VBH}`} className="w-full" style={{ height: 220 }} role="img" aria-label="Histogramme hebdomadaire des enquêtes par niveau d'urgence">
+        {/* Ligne de base */}
+        <line x1={L} y1={baseline} x2={VBW - R} y2={baseline} stroke="#D5DBDF" strokeWidth={1.5} />
+
+        {/* Repère aujourd'hui, positionné au jour près dans la semaine courante */}
+        {idxToday >= 0 && (
+          <g>
+            <line x1={xToday} y1={T - 6} x2={xToday} y2={baseline} stroke="#14304A" strokeWidth={2} strokeDasharray="3 3" />
+            <text x={xToday + 4} y={T - 2} fontSize={11} fontWeight={700} fill="#14304A" fontFamily="Manrope, sans-serif">
+              Aujourd'hui
+            </text>
+          </g>
+        )}
+
+        {/* Colonne « En retard » */}
+        {modele.retard > 0 && (
+          <g>
+            <title>{`${modele.retard} enquête${modele.retard > 1 ? 's' : ''} en retard`}</title>
+            <rect
+              x={centre(0) - barW / 2}
+              y={baseline - hauteurBarre(modele.retard)}
+              width={barW}
+              height={hauteurBarre(modele.retard)}
+              rx={3}
+              fill={COULEUR_URGENCE.en_retard}
+            />
+            <text x={centre(0)} y={baseline - hauteurBarre(modele.retard) - 5} fontSize={12} fontWeight={800} textAnchor="middle" fill="#14304A" fontFamily="Manrope, sans-serif">
+              {modele.retard}
+            </text>
+            <text x={centre(0)} y={baseline + 15} fontSize={10} textAnchor="middle" fill="#C0623F" fontWeight={700}>
+              Retard
+            </text>
+          </g>
+        )}
+
+        {/* Barres empilées par semaine */}
+        {modele.semaines.map((s, i) => {
+          const cx = centre(i + offset);
+          let y = baseline;
+          return (
+            <g key={s.debut}>
+              <title>
+                {`Semaine du ${fmtDate(s.debut)} : ${s.total} enquête${s.total > 1 ? 's' : ''}` +
+                  (s.total ? ` · ${s.compte.urgent} urgent, ${s.compte.a_surveiller} à surveiller, ${s.compte.a_venir} à venir` : '')}
+              </title>
+              {SEGMENTS.map((k) => {
+                const h = hauteurBarre(s.compte[k]);
+                if (h <= 0) return null;
+                y -= h;
+                return <rect key={k} x={cx - barW / 2} y={y + 1} width={barW} height={Math.max(0, h - 1)} rx={2} fill={COULEUR_URGENCE[k]} />;
+              })}
+              {s.total > 0 && (
+                <text x={cx} y={y - 5} fontSize={12} fontWeight={800} textAnchor="middle" fill="#14304A" fontFamily="Manrope, sans-serif">
+                  {s.total}
+                </text>
               )}
-            </div>
-          )}
-        </div>
-
-        {/* Piste temporelle */}
-        <div className="relative flex-1 min-w-0">
-          <div className="relative" style={{ height: hauteur }}>
-            {/* Zones d'alerte */}
-            <div className="absolute inset-y-0 rounded-l-md" style={{ left: `${xPct(0)}%`, width: `${xPct(7) - xPct(0)}%`, backgroundColor: 'rgba(192,98,63,.08)' }} />
-            <div className="absolute inset-y-0" style={{ left: `${xPct(7)}%`, width: `${xPct(15) - xPct(7)}%`, backgroundColor: 'rgba(215,162,74,.10)' }} />
-
-            {/* Bornes de mois */}
-            {mois.map((m) => (
-              <div key={m.label + m.x} className="absolute inset-y-0" style={{ left: `${m.x}%` }}>
-                <div className="h-full w-px bg-brume/70" />
-                <div className="absolute top-0 left-1.5 text-[10px] text-encre/45 capitalize">{m.label}</div>
-              </div>
-            ))}
-
-            {/* Repère aujourd'hui */}
-            <div className="absolute inset-y-0" style={{ left: `${xPct(0)}%` }}>
-              <div className="h-full w-0.5 bg-marine" />
-              <div className="absolute -top-0.5 left-1 text-[10px] font-title font-bold text-marine whitespace-nowrap">
-                Aujourd'hui
-              </div>
-            </div>
-
-            {/* Points enquêtes */}
-            {pointsFenetre.map((p) => (
-              <button
-                key={p.e.id}
-                type="button"
-                onMouseEnter={() => setSurvol(p.e.id)}
-                onMouseLeave={() => setSurvol(null)}
-                onFocus={() => setSurvol(p.e.id)}
-                onBlur={() => setSurvol(null)}
-                className="absolute h-3.5 w-3.5 rounded-full ring-2 ring-surface -translate-x-1/2 transition-transform hover:scale-125 focus:scale-125 focus:outline-none"
-                style={{ left: `${p.x}%`, top: laneY(p.lane), backgroundColor: COULEUR_URGENCE[p.jr <= 7 ? 'urgent' : p.jr <= 15 ? 'a_surveiller' : 'a_venir'] }}
-                aria-label={`${infos(p.e).titre} · Échéance : ${infos(p.e).echeance}`}
-              />
-            ))}
-            {maxLane >= 5 && (
-              <div className="absolute bottom-0 right-0 text-[10px] text-encre/40">couloirs saturés · voir la liste</div>
-            )}
-
-            {/* Infobulle */}
-            {pointSurvole && (
-              <div
-                className="absolute z-20 -translate-x-1/2 pointer-events-none"
-                style={{ left: `${Math.max(12, Math.min(88, pointSurvole.x))}%`, top: Math.max(0, laneY(pointSurvole.lane) - 52) }}
-              >
-                <div className="rounded-lg bg-marine text-white shadow-carte px-2.5 py-1.5 text-[11px] whitespace-nowrap">
-                  <div className="font-bold">{infos(pointSurvole.e).titre}</div>
-                  <div className="text-white/70">
-                    {infos(pointSurvole.e).sous} · {infos(pointSurvole.e).echeance}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Histogramme de charge par semaine */}
-          <div className="relative h-14 mt-1 border-t border-brume/70 pt-1">
-            <div className="absolute left-1 top-1 surtitre text-[9px]">Charge par semaine</div>
-            {semaines.arr.map((s) => {
-              const gauche = xPct(Math.max(0, s.jr));
-              const largeur = (7 / FENETRE) * 96;
-              const h = s.count === 0 ? 0 : 6 + (s.count / semaines.maxCount) * 34;
-              return (
-                <div
-                  key={s.debut}
-                  className="absolute bottom-0 group"
-                  style={{ left: `${gauche}%`, width: `${largeur}%` }}
-                  title={`Semaine du ${fmtDate(s.debut)} : ${s.count} enquête${s.count > 1 ? 's' : ''}`}
-                >
-                  <div className="mx-[2px] rounded-t bg-marine/25 group-hover:bg-marine/45 transition-colors" style={{ height: h }} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+              {/* Étiquette de mois quand le mois change (ou 1re colonne) */}
+              {(i === 0 || s.mois !== modele.semaines[i - 1].mois) && (
+                <text x={cx} y={baseline + 30} fontSize={11} textAnchor="middle" fill="rgba(30,41,51,.55)" className="capitalize">
+                  {NOMS_MOIS[s.mois]}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <p className="mt-1 text-[11px] text-encre/45">
+        Chaque colonne · une semaine, sur 90 jours. Hauteur · nombre d'enquêtes, empilées par niveau d'urgence. Survolez une colonne pour le détail.
+      </p>
     </div>
   );
+}
+
+/** Décalage de colonnes réservé à la barre « Retard » (1 si présente). */
+function model_offset(retard: number): number {
+  return retard > 0 ? 1 : 0;
 }
 
 /** Vue « calendrier » : regroupement par mois, liste par jour. */
