@@ -17,7 +17,7 @@ import { BIORAD_PROGRAMMES, BIORAD_ENQUETES } from './biorad';
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 11;
+export const SEED_VERSION = 12;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -55,6 +55,7 @@ const automates: Automate[] = [
   A('a-im', 'Atellica IM', ['Immunologie'], 'Siemens Atellica IM'),
   A('a-liaisonxl', 'Liaison XL', ['Immuno-enzymologie'], 'DiaSorin Liaison XL'),
   A('a-cs', 'CS-5100', ['Hémostase'], 'Sysmex CS-5100'),
+  A('a-gazo', 'RP500e / Epoc', ['Gazométrie']),
   A('a-xn', 'XN', ['Hématologie'], 'Sysmex XN'),
   A('a-vision', 'Vision', ['Immunohématologie'], 'Ortho VISION'),
   // TLA / Octa : un seul automate (même famille : HbA1c, ELP, PBJ, CDT).
