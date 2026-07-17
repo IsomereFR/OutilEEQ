@@ -138,24 +138,36 @@ export const useStore = create<StoreState>((set, get) => ({
   snapshot: () => extraireAppData(get()),
 }));
 
+// Renommage d'automates : les anciennes références sont migrées vers le nouvel
+// identifiant (fusion TLA + Octa -> TLA / Octa), pour ne pas perdre d'attribution.
+const REMAP_AUTOMATES: Record<string, string> = {
+  'a-tla': 'a-tlaocta',
+  'a-octa': 'a-tlaocta',
+};
+function migrerAutomates(data: AppData): AppData {
+  const remap = (ids: string[]) => [...new Set(ids.map((id) => REMAP_AUTOMATES[id] ?? id))];
+  return {
+    ...data,
+    programmes: data.programmes.map((p) => ({ ...p, automatesParDefaut: remap(p.automatesParDefaut) })),
+    enquetes: data.enquetes.map((e) => ({ ...e, automateIds: remap(e.automateIds) })),
+  };
+}
+
 // --- Initialisation : charge depuis IndexedDB, sinon seed --------------------
 export async function initStore(): Promise<void> {
   try {
     const data = await chargerAppData();
+    let etat: AppData;
     if (data && (data.seedVersion ?? 0) >= SEED_VERSION) {
-      // À jour : on charge tel quel (les attributions locales sont conservées).
-      useStore.setState({ ...data, ready: true, error: null });
+      etat = data; // à jour (attributions locales conservées)
     } else if (data) {
-      // Amorce plus récente : FUSION en préservant les attributions existantes.
-      const fusion = fusionnerAmorce(data, seed());
-      await sauverAppData(fusion);
-      useStore.setState({ ...fusion, ready: true, error: null });
+      etat = fusionnerAmorce(data, seed()); // fusion : attributions préservées
     } else {
-      // Premier chargement : amorce.
-      const s = seed();
-      await sauverAppData(s);
-      useStore.setState({ ...s, ready: true, error: null });
+      etat = seed(); // premier chargement
     }
+    etat = migrerAutomates(etat); // remap des identifiants d'automates renommés
+    await sauverAppData(etat);
+    useStore.setState({ ...etat, ready: true, error: null });
   } catch (e) {
     useStore.setState({
       ...seed(),
