@@ -1,8 +1,9 @@
 // ============================================================================
-//  Données d'amorce (cf. PRD §11). Parc d'automates réel BIOXA fourni, organisé
-//  PAR DISCIPLINE. ⚠️ À COMPLÉTER : les 9 sites (ici un seul site d'amorce), les
-//  abonnements EEQ réels et le rattachement automate ↔ site.
-//  Les enquêtes ci-dessous sont une DÉMO couvrant les 4 niveaux d'urgence.
+//  Données d'amorce (cf. PRD §11). Parc d'automates réel BIOXA (un automate par
+//  famille analytique), organisé PAR DISCIPLINE. Aucune enquête (table rase) :
+//  elles seront importées depuis les CSV puis affectées dans l'espace admin.
+//  ⚠️ À COMPLÉTER : les 9 sites (ici un seul site d'amorce) et le rattachement
+//  automate ↔ site.
 // ============================================================================
 import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '../domain/types';
 
@@ -12,7 +13,7 @@ import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '.
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -53,6 +54,7 @@ const automates: Automate[] = [
   A('a-vision', 'Vision', ['Immunohématologie'], 'Ortho VISION'),
   A('a-tla', 'TLA', ['HbA1C'], 'HbA1C'),
   A('a-octa', 'Octa', ['Électrophorèse des protéines'], 'Sebia'),
+  A('a-manuel', 'Techniques manuelles', ['Techniques Manuelles']),
 ];
 
 // --- Programmes EEQ (exemples reliant fournisseur + automates par défaut) -----
