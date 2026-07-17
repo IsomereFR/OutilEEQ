@@ -5,7 +5,6 @@
 //  Les enquêtes ci-dessous sont une DÉMO couvrant les 4 niveaux d'urgence.
 // ============================================================================
 import type { AppData, Fournisseur, Site, Automate, Programme, Enquete } from '../domain/types';
-import { isoDecale } from '../domain/dates';
 
 /**
  * Version du jeu d'amorce. À incrémenter quand on modifie les référentiels de
@@ -13,7 +12,7 @@ import { isoDecale } from '../domain/dates';
  * qui régénère lorsque la version stockée est inférieure). Phase d'amorce : la
  * régénération remplace l'état local (données de démonstration, pas réelles).
  */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 // --- Fournisseurs (à confirmer selon les abonnements réels) ------------------
 const fournisseurs: Fournisseur[] = [
@@ -95,44 +94,9 @@ const programmes: Programme[] = [
   },
 ];
 
-// --- Enquêtes de démonstration (4 niveaux d'urgence + inbox + réalisée) -------
-const nowISO = new Date().toISOString();
-const mkEnq = (
-  o: Partial<Enquete> & Pick<Enquete, 'id' | 'programmeId' | 'fournisseurId' | 'envoiRef' | 'dateEcheanceRealisation'>,
-): Enquete => ({
-  dateOuverture: isoDecale(-20),
-  dateLimiteSaisie: isoDecale(20),
-  automateIds: [],
-  siteId: 's-central',
-  statut: 'a_realiser',
-  affectee: true,
-  source: 'manuel',
-  notes: '',
-  createdAt: nowISO,
-  updatedAt: nowISO,
-  ...o,
-});
-
-const enquetes: Enquete[] = [
-  // En retard (Hématologie)
-  mkEnq({ id: 'e-retard', programmeId: 'p-hemato', fournisseurId: 'f-asqualab', envoiRef: 'Envoi 1/4',
-    dateEcheanceRealisation: isoDecale(-4), automateIds: ['a-xn'], statut: 'a_realiser' }),
-  // Urgent J-7 (Biochimie)
-  mkEnq({ id: 'e-urgent', programmeId: 'p-bioch', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-A',
-    dateEcheanceRealisation: isoDecale(3), automateIds: ['a-ch'], statut: 'a_realiser' }),
-  // À surveiller (Immunologie)
-  mkEnq({ id: 'e-surv', programmeId: 'p-immuno', fournisseurId: 'f-probioq', envoiRef: 'Envoi 5/12',
-    dateEcheanceRealisation: isoDecale(11), automateIds: ['a-im'], statut: 'a_venir' }),
-  // À venir (Hémostase)
-  mkEnq({ id: 'e-venir', programmeId: 'p-hemostase', fournisseurId: 'f-probioq', envoiRef: 'Cycle 2026-2',
-    dateEcheanceRealisation: isoDecale(35), automateIds: ['a-cs'], statut: 'a_venir' }),
-  // Non affectée (inbox « À affecter »)
-  mkEnq({ id: 'e-inbox', programmeId: 'p-hba1c', fournisseurId: 'f-riqas', envoiRef: 'Envoi 7/12',
-    dateEcheanceRealisation: isoDecale(9), automateIds: [], affectee: false, statut: 'a_venir', source: 'excel' }),
-  // Réalisée ce mois (Immunohématologie)
-  mkEnq({ id: 'e-realisee', programmeId: 'p-ih', fournisseurId: 'f-bioprospective', envoiRef: 'Envoi 1/3',
-    dateEcheanceRealisation: isoDecale(-6), automateIds: ['a-vision'], statut: 'realise' }),
-];
+// --- Enquêtes : TABLE RASE. Les enquêtes et leurs échéances seront importées
+//     depuis les fichiers CSV, puis affectées aux automates dans l'espace admin.
+const enquetes: Enquete[] = [];
 
 /** Jeu de données d'amorce complet. */
 export function seed(): AppData {

@@ -38,7 +38,6 @@ export function Dashboard() {
   useAlertes(); // recalcul périodique (24 h) + au retour sur l'onglet
   const enquetes = useStore((s) => s.enquetes);
   const c = comptesAlerte(enquetes);
-  const total = c.aujourdhui + c.j3 + c.j7;
 
   const dateJour = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -61,18 +60,6 @@ export function Dashboard() {
           <Synthese couleur={COULEUR_ALERTE.j7} valeur={c.j7} libelle={LIBELLE_ALERTE.j7} />
         </div>
       </div>
-
-      {total === 0 && (
-        <div
-          className="rounded-xl2 px-4 py-3 text-sm font-medium flex items-center gap-2"
-          style={{ background: `${COULEUR_ALERTE.a_jour}14`, color: COULEUR_ALERTE.a_jour }}
-        >
-          <span className="grid place-items-center h-5 w-5 rounded-full text-white text-xs" style={{ backgroundColor: COULEUR_ALERTE.a_jour }}>
-            ✓
-          </span>
-          Aucune EEQ à réaliser dans les 7 jours. Tous les automates sont à jour.
-        </div>
-      )}
 
       {/* Mur des automates */}
       <MurAutomates enquetes={enquetes} />
