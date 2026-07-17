@@ -14,6 +14,11 @@ export const SEUIL_SURVEILLANCE = 15;
 export const SEUIL_ALERTE_3J = 3;
 /** Palier « sous 7 jours » : joursRestants dans [SEUIL_ALERTE_3J+1, SEUIL_ALERTE_7J]. */
 export const SEUIL_ALERTE_7J = 7;
+/**
+ * Fenêtre d'affichage du mur (jours) : au-delà, l'enquête n'est PAS affichée
+ * (inutile de montrer trop en avance). En deçà de 0, échéance dépassée : masquée.
+ */
+export const FENETRE_AFFICHAGE_JOURS = 15;
 
 /** Fenêtre de la frise chronologique (jours glissants). */
 export const FENETRE_FRISE_JOURS = 90;

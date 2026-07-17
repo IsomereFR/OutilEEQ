@@ -34,9 +34,14 @@ describe('niveauAlerte (4 paliers, dépassé masqué)', () => {
     expect(niveauAlerte(enq(4), REF)).toBe('j7');
     expect(niveauAlerte(enq(7), REF)).toBe('j7');
   });
-  it('à jour au-delà de 7 jours', () => {
+  it('à jour entre 8 et 15 jours (dans la fenêtre)', () => {
     expect(niveauAlerte(enq(8), REF)).toBe('a_jour');
-    expect(niveauAlerte(enq(40), REF)).toBe('a_jour');
+    expect(niveauAlerte(enq(15), REF)).toBe('a_jour');
+  });
+  it('null (masquée) au-delà de 15 jours', () => {
+    expect(niveauAlerte(enq(16), REF)).toBeNull();
+    expect(niveauAlerte(enq(40), REF)).toBeNull();
+    expect(estAffichable(enq(16), REF)).toBe(false);
   });
   it('null (masquée) si échéance dépassée', () => {
     expect(niveauAlerte(enq(-1), REF)).toBeNull();

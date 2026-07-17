@@ -65,7 +65,7 @@ export function Dashboard() {
       <MurAutomates enquetes={enquetes} />
 
       <p className="text-center text-[11px] text-encre/40">
-        Affichage en lecture seule · mise à jour automatique toutes les 24 heures · les échéances dépassées ne sont plus affichées.
+        Affichage en lecture seule · mise à jour automatique toutes les 24 heures · seules les échéances des 15 prochains jours sont affichées (les échéances dépassées et lointaines sont masquées).
       </p>
     </div>
   );
