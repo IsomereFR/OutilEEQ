@@ -19,6 +19,7 @@ const ORDRE_DISCIPLINES = [
   'Immunologie',
   'Immuno-enzymologie',
   'Hémostase',
+  'Gazométrie',
   'Hématologie',
   'Immunohématologie',
   'HbA1c', // famille TLA / Octa (HbA1c · ELP · PBJ · CDT)
