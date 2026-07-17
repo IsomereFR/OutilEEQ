@@ -6,8 +6,10 @@
 // ============================================================================
 import { useStore } from '../../store/useStore';
 import { comptesAlerte } from '../../domain/alerte';
+import { automatesAReapprovisionner } from '../../domain/reapprovisionnement';
 import { COULEUR_ALERTE, LIBELLE_ALERTE } from '../../theme/tokens';
 import { MurAutomates } from './MurAutomates';
+import { BandeauReappro } from './BandeauReappro';
 import { useAlertes } from './useAlertes';
 
 /** Grande pastille de synthèse (un palier d'alerte). */
@@ -37,7 +39,9 @@ function Synthese({ couleur, valeur, libelle }: { couleur: string; valeur: numbe
 export function Dashboard() {
   useAlertes(); // recalcul périodique (24 h) + au retour sur l'onglet
   const enquetes = useStore((s) => s.enquetes);
+  const automates = useStore((s) => s.automates);
   const c = comptesAlerte(enquetes);
+  const reappro = automatesAReapprovisionner(enquetes, automates);
 
   const dateJour = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -68,6 +72,10 @@ export function Dashboard() {
       <p className="text-center text-[11px] text-encre/40">
         Affichage en lecture seule · mise à jour automatique toutes les 24 heures · seules les échéances des 15 prochains jours sont affichées (les échéances dépassées et lointaines sont masquées).
       </p>
+
+      {/* Espaceur : réserve la hauteur du bandeau fixe pour ne rien masquer. */}
+      {reappro.length > 0 && <div aria-hidden className="h-24" />}
+      <BandeauReappro items={reappro} />
     </div>
   );
 }
