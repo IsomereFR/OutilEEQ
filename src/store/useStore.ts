@@ -14,6 +14,7 @@ import type {
 import { chargerAppData, sauverAppData, APPDATA_VIDE } from './db';
 import { seed, SEED_VERSION } from '../config/seed';
 import { fusionner, type ModeImport } from './backup';
+import { fusionnerAmorce } from './fusion';
 
 let SEQ = 0;
 /** Identifiant local unique (mono-poste). */
@@ -141,11 +142,16 @@ export const useStore = create<StoreState>((set, get) => ({
 export async function initStore(): Promise<void> {
   try {
     const data = await chargerAppData();
-    // Régénère l'amorce si absente OU si sa version est antérieure (phase de
-    // démonstration : les référentiels évoluent et doivent être appliqués).
     if (data && (data.seedVersion ?? 0) >= SEED_VERSION) {
+      // À jour : on charge tel quel (les attributions locales sont conservées).
       useStore.setState({ ...data, ready: true, error: null });
+    } else if (data) {
+      // Amorce plus récente : FUSION en préservant les attributions existantes.
+      const fusion = fusionnerAmorce(data, seed());
+      await sauverAppData(fusion);
+      useStore.setState({ ...fusion, ready: true, error: null });
     } else {
+      // Premier chargement : amorce.
       const s = seed();
       await sauverAppData(s);
       useStore.setState({ ...s, ready: true, error: null });
