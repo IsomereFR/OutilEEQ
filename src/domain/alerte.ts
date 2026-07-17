@@ -9,14 +9,14 @@ import { avantRealise } from './urgence';
 import { joursRestants, aujourdhui } from './dates';
 import { SEUIL_ALERTE_3J, SEUIL_ALERTE_7J, FENETRE_AFFICHAGE_JOURS } from './config/seuils';
 
-export type NiveauAlerte = 'aujourdhui' | 'j3' | 'j7' | 'a_jour';
+export type NiveauAlerte = 'aujourdhui' | 'j3' | 'j7' | 'j15';
 
 /** Ordre de sévérité (0 = plus urgent). */
 export const RANG_ALERTE: Record<NiveauAlerte, number> = {
   aujourdhui: 0,
   j3: 1,
   j7: 2,
-  a_jour: 3,
+  j15: 3,
 };
 
 /**
@@ -32,14 +32,14 @@ export function estAffichable(e: Enquete, ref: Date = aujourdhui()): boolean {
   return jr !== null && jr >= 0 && jr <= FENETRE_AFFICHAGE_JOURS;
 }
 
-/** Niveau d'alerte d'une enquête, ou null si non affichable (dépassée/réalisée). */
+/** Niveau d'alerte d'une enquête, ou null si non affichable (dépassée/réalisée/lointaine). */
 export function niveauAlerte(e: Enquete, ref: Date = aujourdhui()): NiveauAlerte | null {
   if (!estAffichable(e, ref)) return null;
   const jr = joursRestants(e.dateEcheanceRealisation, ref) as number;
   if (jr === 0) return 'aujourdhui';
   if (jr <= SEUIL_ALERTE_3J) return 'j3';
   if (jr <= SEUIL_ALERTE_7J) return 'j7';
-  return 'a_jour';
+  return 'j15'; // 8..15 j (garanti <= 15 par estAffichable) : simple indication
 }
 
 /** Pire (plus urgent) niveau parmi une liste ; null si aucune affichable. */
@@ -57,14 +57,16 @@ export interface ComptesAlerte {
   aujourdhui: number;
   j3: number;
   j7: number;
+  j15: number;
 }
 export function comptesAlerte(enquetes: Enquete[], ref: Date = aujourdhui()): ComptesAlerte {
-  const c: ComptesAlerte = { aujourdhui: 0, j3: 0, j7: 0 };
+  const c: ComptesAlerte = { aujourdhui: 0, j3: 0, j7: 0, j15: 0 };
   for (const e of enquetes) {
     const n = niveauAlerte(e, ref);
     if (n === 'aujourdhui') c.aujourdhui += 1;
     else if (n === 'j3') c.j3 += 1;
     else if (n === 'j7') c.j7 += 1;
+    else if (n === 'j15') c.j15 += 1;
   }
   return c;
 }
