@@ -4,6 +4,7 @@ import { useNav } from './store/useNav';
 import { EnTete } from './ui/EnTete';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { AdminView } from './features/admin/AdminView';
+import { AdminGate } from './features/admin/AdminGate';
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -67,7 +68,9 @@ export function App() {
         {!ready ? (
           <div className="text-center text-encre/50 py-24">Chargement des données locales</div>
         ) : vue === 'admin' ? (
-          <AdminView />
+          <AdminGate>
+            <AdminView />
+          </AdminGate>
         ) : (
           <Dashboard />
         )}
