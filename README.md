@@ -74,6 +74,28 @@ local et resynchronise ensuite).
 > Sans ces variables, l'application reste strictement locale (comportement par
 > défaut, aucune donnée ne sort du poste).
 
+## Protection de l'espace administrateur (optionnelle)
+
+Par défaut l'espace administrateur (import, attribution, sauvegarde) est
+accessible via le bouton « Admin ». Pour le **protéger par un mot de passe
+unique**, définir la variable d'environnement :
+
+```
+VITE_ADMIN_MOT_DE_PASSE=un-mot-de-passe-partagé
+```
+
+(localement dans `.env`, ou sur l'hébergeur dans les variables d'environnement,
+puis **reconstruire / redéployer** car les variables `VITE_` sont figées au
+build). Le mur d'affichage reste public en lecture ; seul l'accès à `/admin`
+demande le mot de passe. Le déverrouillage est mémorisé pour la session de
+l'onglet. Sans cette variable, l'admin reste ouvert (comportement d'origine).
+
+> **Sécurité :** l'application étant 100 % côté client, ce mot de passe est un
+> **garde-fou** (il évite l'accès accidentel depuis l'URL), pas une sécurité
+> cryptographique : une personne technique peut le contourner via les outils du
+> navigateur. Pour un vrai contrôle d'accès (comptes nominatifs, révocation),
+> ajouter une authentification Supabase.
+
 ## Prérequis
 
 - Node.js ≥ 18 (testé avec Node 22) et npm.
